@@ -54,16 +54,15 @@ $(SOURCES_DIR)/%-git : force
 %-git-purge:
 	$(call remote-maybe, rm -rf $(SOURCES_DIR)/$*-git)
 
-%-clean:
+%-git-clean:
 	$(call remote-maybe, cd $(SOURCES_DIR)/$*-git && $(MAKE) clean)
 
-%-distclean:
+%-git-distclean:
 	$(call remote-maybe, cd $(SOURCES_DIR)/$*-git && $(MAKE) distclean)
 
-# For zip archives we need a url to the zip archive an the path from
-# the zip root to the project root.
+# Tar archives
 .SECONDEXPANSION :
-$(TAR_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-archive
+$(TAR_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-tar
 
 .SECONDARY:
 $(DRAFTS_DIR)/%.tar.gz: | $(DRAFTS_DIR)
@@ -71,12 +70,31 @@ $(DRAFTS_DIR)/%.tar.gz: | $(DRAFTS_DIR)
 	wget $($*-tar-url) -O $@
 
 .SECONDEXPANSION :
-$(SOURCES_DIR)/%-archive : | $(DRAFTS_DIR)/$$*.tar.gz
+$(SOURCES_DIR)/%-tar : | $(DRAFTS_DIR)/$$*.tar.gz
 	mkdir $@
 	cd $@ && tar xvzf $(DRAFTS_DIR)/$*.tar.gz
 
-%-clean-archive:
-	rm -rf $(SOURCES_DIR)/$*-archive $(DRAFTS_DIR)/$*.tar.gz
+%-tar-clean:
+	rm -rf $(SOURCES_DIR)/$*-tar $(DRAFTS_DIR)/$*.tar.gz
+
+
+# Bz2 archives
+.SECONDEXPANSION :
+$(BZ_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-bz
+
+.SECONDARY:
+$(DRAFTS_DIR)/%.bz2: | $(DRAFTS_DIR)
+	echo "Pulling tar project $*."
+	wget $($*-bz-url) -O $@
+
+.SECONDEXPANSION :
+$(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/$$*.bz2
+	mkdir $@
+	cd $@ && bzip2 -dv  $(DRAFTS_DIR)/$*.bz2
+
+%-bz-clean:
+	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/$*.bz2
+
 
 # Raw projects are projects that do not need to be extracted in any way.
 $(RAW_PROJECTS) :  $(DRAFTS_DIR)/raw-$$@ | $(DRAFTS_DIR)
