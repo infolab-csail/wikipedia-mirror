@@ -28,7 +28,7 @@
 
 **** ROOTACCESS
      :PROPERTIES:
-     :CUSTOM_ID: rootaccess_var
+     :CUSTOM_ID: rootaccess
      :END:
      This defines how we will be using root access to things. Xampp is
      (almost) self contained in =/opt= so you may want to use some
