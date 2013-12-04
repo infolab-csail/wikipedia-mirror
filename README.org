@@ -5,28 +5,31 @@
 **** xampp-build
      Download and install xampp.
 
-     Related variables: [[ROOTACCESS][ROOTACCESS]]
+     Related variables: [[#rootaccess_var][ROOTACCESS]]
 
 **** xampp-uninstall
      Remove a xampp instance from the default directory =/opt/lampp/=
 
-     Related variables: [[ROOTACCESS][ROOTACCESS]]
+     Related variables: [[#rootaccess_var][ROOTACCESS]]
 
 **** xampp-run
      Start a xampp instance.
 
-     Related variables: [[ROOTACCESS][ROOTACCESS]]
+     Related variables: [[#rootaccess_var][ROOTACCESS]]
 
 **** xampp-run
      Kill a running xampp instance.
 
-     Related variables: [[ROOTACCESS][ROOTACCESS]]
+     Related variables: [[#rootaccess_var][ROOTACCESS]]
 
 *** Variables
     These variables are specific only to xampp operations, however
     xampp may be used by other modules.
 
 **** ROOTACCESS
+     :PROPERTIES:
+     :CUSTOM_ID: rootaccess_var
+     :END:
      This defines how we will be using root access to things. Xampp is
      (almost) self contained in =/opt= so you may want to use some
      chroot magic to have it built locally. For now this is just sudo
