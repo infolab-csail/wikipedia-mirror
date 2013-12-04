@@ -1,23 +1,37 @@
 * Usage
 ** Xampp
    By default I will try to install xampp to run stuff locally.
+*** Targets
+**** xampp-build
+     Download and install xampp.
 
-*** xampp-build
-    Download and install xampp.
+     Related variables: ROOTACCESS
 
-    Related variables: ROOTACCESS
+**** xampp-uninstall
+     Remove a xampp instance from the default directory =/opt/lampp/=
 
-*** xampp-uninstall
-    Remove a xampp instance from the default directory =/opt/lampp/=
+     Related variables: ROOTACCESS
 
-    Related variables: ROOTACCESS
+**** xampp-run
+     Start a xampp instance.
 
-*** xampp-run
-    Start a xampp instance.
+     Related variables: ROOTACCESS
 
-    Related variables: ROOTACCESS
+**** xampp-run
+     Kill a running xampp instance.
 
-*** xampp-run
-    Kill a running xampp instance.
+     Related variables: ROOTACCESS
 
-    Related variables: ROOTACCESS
+*** Variables
+    These variables are specific only to xampp operations, however
+    xampp may be used by other modules.
+
+**** ROOTACCESS
+     This defines how we will be using root access to things. Xampp is
+     (almost) self contained in =/opt= so you may want to use some
+     chroot magic to have it built locally. For now this is just sudo
+     but if you actually want local install I would suggest
+
+     #+BEGIN_EXAMPLE
+     ROOTACCESS=fakechroot fakeroot chroot /target/directory/
+     #+END_EXAMPLE
