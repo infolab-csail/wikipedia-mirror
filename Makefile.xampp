@@ -1,31 +1,35 @@
 # All xampp related stuff are here.
 
-# ROOTACCESS=fakechroot fakeroot chroot $(FILESYSTEM_ROOT)
-ROOTACCESS=sudo
-XAMPP_INSTALLER=$(DRAFTS_DIR)/raw-xampp.run
+## DOC
+# XAMPP_SCOPE can be local or global, in the local case we are
+# chrooting to fs. In the global case we need actual root access.
+
+XAMPP_SCOPE=local
+ifeq ($(XAMPP_SCOPE),local)
+ROOTACCESS=fakechroot fakeroot chroot $(FILESYSTEM_ROOT)
+XAMPP_INSTALLER=$(FSROOT_TMP)/xampp.run #Should be somewhere where ROOTACCESS will interpret as /tmp/xampp.run
+else
+ROOTACCESS=fakeroot
+XAMPP_INSTALLER=/tmp/xampp.run
+endif
 
 xampp.run-raw-url=http://downloads.sourceforge.net/project/xampp/XAMPP%20Linux/1.8.3/xampp-linux-x64-1.8.3-1-installer.run
 RAW_PROJECTS += xampp.run
 
-$(FSROOT_TMP)/raw-xampp.run:
-	cp $(DRAFTS_DIR)/tmp-xampp.run $@
+$(XAMPP_INSTALLER): $(DRAFTS_DIR)/raw-xampp.run
+	cp $(DRAFTS_DIR)/raw-xampp.run $@
 
-# XXX: DOC: This requires root access to install xampp if you do not have
-# root access or do not trust me you may modify ROOTACCESS to use
-# fakechroot and XAMPP_INSTALLER to point in fs. The problem with this
-# is that you will have to setup an entire linux env in fs.
-xampp-build: xampp.run | $(XAMPP_INSTALLER) $(FSROOT_TMP)
+xampp-build: $(XAMPP_INSTALLER) | $(FSROOT_TMP)
 	if ! [ "$(cat /etc/groups | grep nogroup)" = "" ]; then \
 		sudo groupadd nogroup; \
 	fi
 
 	chmod a+x $(XAMPP_INSTALLER)
-	$(ROOTACCESS) $(XAMPP_INSTALLER) --mode unattended
+	$(ROOTACCESS) /tmp/xampp.run --mode unattended
 
 xampp-uninstall:
 	$(ROOTACCESS) rm -rf /opt/lampp
 
-# XXX: at some point make this check if the installation is there.
 xampp-run:
 	$(ROOTACCESS) /opt/lampp/lampp start
 
