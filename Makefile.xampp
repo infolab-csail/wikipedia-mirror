@@ -6,32 +6,66 @@
 
 XAMPP_SCOPE=local
 ifeq ($(XAMPP_SCOPE),local)
-ROOTACCESS=fakechroot fakeroot chroot $(FILESYSTEM_ROOT)
+XAMPP_ROOTACCESS=fakechroot fakeroot chroot $(FILESYSTEM_ROOT)
 XAMPP_INSTALLER=$(FSROOT_TMP)/xampp.run #Should be somewhere where ROOTACCESS will interpret as /tmp/xampp.run
 else
-ROOTACCESS=fakeroot
+XAMPP_ROOTACCESS=fakeroot
 XAMPP_INSTALLER=/tmp/xampp.run
 endif
 
 xampp.run-raw-url=http://downloads.sourceforge.net/project/xampp/XAMPP%20Linux/1.8.3/xampp-linux-x64-1.8.3-1-installer.run
 RAW_PROJECTS += xampp.run
 
-$(XAMPP_INSTALLER): $(DRAFTS_DIR)/raw-xampp.run
+$(XAMPP_INSTALLER): $(DRAFTS_DIR)/raw-xampp.run | $(FSROOT_TMP)
 	cp $(DRAFTS_DIR)/raw-xampp.run $@
 
-xampp-build: $(XAMPP_INSTALLER) | $(FSROOT_TMP)
-	if ! [ "$(cat /etc/groups | grep nogroup)" = "" ]; then \
-		sudo groupadd nogroup; \
+jail:	$(FILESYSTEM_ROOT)/bin/bash \
+	$(FILESYSTEM_ROOT)/bin/ln \
+	$(FILESYSTEM_ROOT)/bin/ls \
+	$(FILESYSTEM_ROOT)/usr/bin/chown \
+	$(FILESYSTEM_ROOT)/bin/rm \
+	$(FILESYSTEM_ROOT)/bin/whoami \
+	$(FILESYSTEM_ROOT)/usr/bin/useradd \
+	$(FILESYSTEM_ROOT)/bin/groupadd \
+	$(FILESYSTEM_ROOT)/etc/group \
+	$(FILESYSTEM_ROOT)/etc/passwd
+
+# Zsh is a bit sneaky with it's libraries so I will just use bash.
+jail-shell: jail
+	fakechroot fakeroot chroot $(FILESYSTEM_ROOT) /bin/bash
+
+%-symbolic-deps:
+	for i in $$(ldd `which $*` | grep -o "/[^ ]*"); do \
+		if ! [ -x $$i ]; then \
+			mkdir -p $(FILESYSTEM_ROOT)/$$(dirname $$i) && cp $$i $(FILESYSTEM_ROOT)/$$i; \
+		fi \
+	done;
+
+$(FILESYSTEM_ROOT)/etc/% : | $(FSROOT_ETC)
+	cp /etc/$* $@
+
+.SECONDEXPANSION:
+$(FILESYSTEM_ROOT)/usr/bin/%: $$*-symbolic-deps | $(FSROOT_USRBIN)
+	cp $$(which $*) $@
+
+.SECONDEXPANSION:
+$(FILESYSTEM_ROOT)/bin/%: $$*-symbolic-deps | $(FSROOT_BIN)
+	cp $$(which $*) $@
+
+xampp-build: $(XAMPP_INSTALLER) jail | $(FSROOT_TMP)
+	@echo "Building the $(XAMPP_SCOPE) setup with root: $(XAMPP_ROOTACCESS)"
+	if [ "$$(cat /etc/group | grep nogroup)" = "" ]; then \
+		$(XAMPP_ROOTACCESS) groupadd nogroup; \
 	fi
 
 	chmod a+x $(XAMPP_INSTALLER)
-	$(ROOTACCESS) /tmp/xampp.run --mode unattended
+	$(XAMPP_ROOTACCESS) /tmp/xampp.run --mode unattended
 
-xampp-uninstall:
-	$(ROOTACCESS) rm -rf /opt/lampp
+xampp-uninstall: jail
+	$(XAMPP_ROOTACCESS) rm -rf /opt/lampp
 
 xampp-run:
-	$(ROOTACCESS) /opt/lampp/lampp start
+	$(XAMPP_ROOTACCESS) /opt/lampp/lampp start
 
 xampp-kill:
-	$(ROOTACCESS) /opt/lampp/lampp stop
+	$(XAMPP_ROOTACCESS) /opt/lampp/lampp stop

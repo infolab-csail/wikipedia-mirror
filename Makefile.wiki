@@ -7,7 +7,7 @@
 HTDOCS_DIR=/opt/lampp/htdocs
 HTDOCS_SUBDIR=wikipedia
 WIKIMEDIA_ROOT=$(HTDOCS_DIR)/$(HTDOCS_SUBDIR)
-ROOTACCESS=fakeroot
+WIKI_ROOTACCESS=fakeroot
 
 ## DOC
 # This will try to set recursive perimission to htdocs directory with

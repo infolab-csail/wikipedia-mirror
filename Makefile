@@ -23,14 +23,19 @@ ROOT_DIRECTORIES = $(SOURCES_DIR) $(DRAFTS_DIR) $(RESOURCES_DIR) $(TOOLS_DIR) $(
 
 # Filesystem root directories
 FSROOT_TMP=$(FILESYSTEM_ROOT)/tmp
+FSROOT_BIN=$(FILESYSTEM_ROOT)/bin
+FSROOT_USRBIN=$(FILESYSTEM_ROOT)/usr/bin
+FSROOT_ETC=$(FILESYSTEM_ROOT)/etc
 
-FSROOT_DIRECTORIES = $(FSROOT_TMP)
+FSROOT_DIRECTORIES = $(FSROOT_TMP) $(FSROOT_BIN) $(FSROOT_USRBIN) $(FSROOT_ETC)
 
 DIRECTORIES = $(FSROOT_DIRECTORIES) $(ROOT_DIRECTORIES)
 
 # Includes should be after command declarations and before targets
 include Makefile.xampp
 include Makefile.wiki
+
+$(FSROOT_DIRECTORIES): | $(FILESYSTEM_ROOT)
 
 $(DIRECTORIES):
 	[ -d $@ ] || mkdir -p $@
