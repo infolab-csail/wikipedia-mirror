@@ -1,0 +1,23 @@
+* Usage
+** Xampp
+   By default I will try to install xampp to run stuff locally.
+
+*** xampp-build
+    Download and install xampp.
+
+    Related variables: ROOTACCESS
+
+*** xampp-uninstall
+    Remove a xampp instance from the default directory =/opt/lampp/=
+
+    Related variables: ROOTACCESS
+
+*** xampp-run
+    Start a xampp instance.
+
+    Related variables: ROOTACCESS
+
+*** xampp-run
+    Kill a running xampp instance.
+
+    Related variables: ROOTACCESS

@@ -1,0 +1,30 @@
+# This is all the wiki related stuff
+
+## DOC
+# If you are using your own apache server use HTDOCS_DIR to tell me
+# where to install mediawiki. The default is /opt/lampp/htdocs/. To
+# define a subdir in htdocs use HTDOCS_SUBDIR (default is wikipedia).
+HTDOCS_DIR=/opt/lampp/htdocs
+HTDOCS_SUBDIR=wikipedia
+WIKIMEDIA_ROOT=$(HTDOCS_DIR)/$(HTDOCS_SUBDIR)
+
+## DOC
+# This will try to set recursive perimission to htdocs directory with
+# HTDOCS_PERMISSIONS which defaults to a+rw. Use symbolic or numerical.
+HTDOCS_PERMISSIONS=a+rw
+
+DIRECTORIES += $(WIKIMEDIA_ROOT)
+
+## DOC
+# Dependency: rsync
+SYNC=rsync -zvr
+
+.PHONY: htdocs-permissions
+htdocs-permissions:
+	sudo chmod -R $(HTDOCS_PERMISSIONS) $(HTDOCS_DIR)
+
+wikimedia-tar-url=http://download.wikimedia.org/mediawiki/1.21/mediawiki-1.21.3.tar.gz
+TAR_PROJECTS += wikimedia
+wikimedia-build: wikimedia htdocs-permissions | $(WIKIMEDIA_ROOT)
+	cd $(SOURCES_DIR)/wikimedia-archive/ ; \
+	$(SYNC) $(SOURCES_DIR)/wikimedia-archive/ $(WIKIMEDIA_ROOT)
