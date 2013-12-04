@@ -7,6 +7,7 @@
 HTDOCS_DIR=/opt/lampp/htdocs
 HTDOCS_SUBDIR=wikipedia
 WIKIMEDIA_ROOT=$(HTDOCS_DIR)/$(HTDOCS_SUBDIR)
+ROOTACCESS=fakeroot
 
 ## DOC
 # This will try to set recursive perimission to htdocs directory with
@@ -21,10 +22,22 @@ SYNC=rsync -zvr
 
 .PHONY: htdocs-permissions
 htdocs-permissions:
-	sudo chmod -R $(HTDOCS_PERMISSIONS) $(HTDOCS_DIR)
+	$(ROOTACCESS) chmod -R $(HTDOCS_PERMISSIONS) $(HTDOCS_DIR)
 
 wikimedia-tar-url=http://download.wikimedia.org/mediawiki/1.21/mediawiki-1.21.3.tar.gz
 TAR_PROJECTS += wikimedia
 wikimedia-build: wikimedia htdocs-permissions | $(WIKIMEDIA_ROOT)
 	cd $(SOURCES_DIR)/wikimedia-archive/ ; \
-	$(SYNC) $(SOURCES_DIR)/wikimedia-archive/ $(WIKIMEDIA_ROOT)
+	$(SYNC) $(SOURCES_DIR)/wikimedia-archive/*/ $(WIKIMEDIA_ROOT)
+
+# Purposely avoided htdocs-permissions as a dependency. If we had
+# created it we would be able to remove it.
+wikimedia-uninstall:
+	rm -rf $(WIKIMEDIA_ROOT)
+
+wikipedia-dump.xml-bz-url=http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
+BZ_PROJECTS += wikipedia-dump.xml
+
+wikipedia-dump: wikipedia-dump.xml
+
+wikipedia-dump-clean: wikipedia-dump.xml-bz-clean
