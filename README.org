@@ -5,22 +5,22 @@
 **** xampp-build
      Download and install xampp.
 
-     Related variables: [[#rootaccess_var][ROOTACCESS]]
+     Related variables: [[#rootaccess][ROOTACCESS]]
 
 **** xampp-uninstall
      Remove a xampp instance from the default directory =/opt/lampp/=
 
-     Related variables: [[#rootaccess_var][ROOTACCESS]]
+     Related variables: [[#rootaccess][ROOTACCESS]]
 
 **** xampp-run
      Start a xampp instance.
 
-     Related variables: [[#rootaccess_var][ROOTACCESS]]
+     Related variables: [[#rootaccess][ROOTACCESS]]
 
 **** xampp-run
      Kill a running xampp instance.
 
-     Related variables: [[#rootaccess_var][ROOTACCESS]]
+     Related variables: [[#rootaccess][ROOTACCESS]]
 
 *** Variables
     These variables are specific only to xampp operations, however
