@@ -1,40 +1,30 @@
 * Usage
+** Variables
+   These are some variable you can tinker with. This list is not
+   complete but it's pretty comprehensive.
+
+** Bitnami
+*** Targets
+**** bitnami-mediawiki-build
+     Build a bitnami instance in [[#filesystem_root][FILESYSTEM_ROOT]].
+**** bmw-run
+
+
 ** Xampp
+   *WARNING*: XAMPP is built and installed within a jail that is
+   fs. It is incompatible with other server stacks. It also does not
+   work 100% of the time. Use [[#bitnami][bitnami]] instead.
+
    By default I will try to install xampp to run stuff locally.
 *** Targets
 **** xampp-build
      Download and install xampp.
 
-     Related variables: [[#rootaccess][ROOTACCESS]]
-
 **** xampp-uninstall
      Remove a xampp instance from the default directory =/opt/lampp/=
-
-     Related variables: [[#rootaccess][ROOTACCESS]]
 
 **** xampp-run
      Start a xampp instance.
 
-     Related variables: [[#rootaccess][ROOTACCESS]]
-
 **** xampp-run
      Kill a running xampp instance.
-
-     Related variables: [[#rootaccess][ROOTACCESS]]
-
-*** Variables
-    These variables are specific only to xampp operations, however
-    xampp may be used by other modules.
-
-**** ROOTACCESS
-     :PROPERTIES:
-     :CUSTOM_ID: rootaccess
-     :END:
-     This defines how we will be using root access to things. Xampp is
-     (almost) self contained in =/opt= so you may want to use some
-     chroot magic to have it built locally. For now this is just sudo
-     but if you actually want local install I would suggest
-
-     #+BEGIN_EXAMPLE
-     ROOTACCESS=fakechroot fakeroot chroot /target/directory/
-     #+END_EXAMPLE

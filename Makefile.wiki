@@ -14,9 +14,8 @@ wikipedia-dump-xml-clean: wikipedia-dump.xml-bz-clean
 
 ## Wikipedia Dump raw
 # mwdumper handles bziped archives so we just need this raw. Look
-# above if you need plain xml. Also note the naming of the
-# project. This way I use the same dowloaded blob for both
-# whikipedia-dump.xml and wikipedia-dump.xml.bz2 raw.
+# above if you need plain xml.
+
 wikipedia-dump.xml.bz2-raw-url=$(WIKIPEDIA_BZ2_URL)
 RAW_PROJECTS += wikipedia-dump.xml.bz2
 
@@ -26,16 +25,21 @@ wikipedia-dump : wikipedia-dump.xml.bz2
 ## MWDumper
 # You will need jde and jre. For more info see here:
 # http://www.mediawiki.org/wiki/Mwdumper
-mwdumper-git-repo=http://www.mediawiki.org/wiki/Manual:Importing_XML_dumps
+mwdumper-git-repo=https://git.wikimedia.org/git/mediawiki/tools/mwdumper.git
 GIT_PROJECTS += mwdumper
-mwdumper-build: mwdumper wikipedia-dump bitnami-mediawiki-build
-	@echo "XXX: add output paths so they will make more sense in errors. This may take a while."
-	source $(FILESYSTEM_ROOT)/use_mediawiki && \ # This fixes $PATH for mysql
-	cd $(SOURCES_DIR)/mwdumper-git/src/ && \
-	javac org/mediawiki/dumper/Dumper.java && \
-	cd .. && \
-	java -classpath ./src org.mediawiki.dumper.Dumper --format=sql:1.5 $(DRAFTS_DIR)/wikipedia-dump.xml.bz2 | \
-		mysql -u $(MYSQL_USER) -p $(MYSQL_PASS)
+MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
+
+$(TOOLS_DIR)/mwdumper.jar: mwdumper | $(TOOLS_DIR)
+	cd $(SOURCES_DIR)/mwdumper-git/ && \
+	mvn package
+	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
+
+$(DRAFTS_DIR)/wikipedia_dump.sql: wikipedia-dump bitnami-mediawiki-build $(TOOLS_DIR)/mwdumper.jar
+	java -jar $(TOOLS_DIR)/mwdumper.jar --format=sql:1.5 $(DRAFTS_DIR)/raw-wikipedia-dump.xml.bz2 > $(DRAFTS_DIR)/wikipedia_dump.sql
+
+# XXX: move this to the server stack
+mwdumper-load: $(DRAFTS_DIR)/wikipedia_dump.sql
+	$(FILESYSTEM_ROOT)/mysql/bin/mysql -u $(MYSQL_USER) -p $(MYSQL_PASS)
 
 
 ###### WikiMedia vanilla build. ######

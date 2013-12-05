@@ -54,11 +54,11 @@ show-projects:
 $(GIT_PROJECTS) : $(SOURCES_DIR)/$$@-git
 
 $(SOURCES_DIR)/%-git : force
-	$(call remote-maybe, if [ ! -d $@ ] || "$(force-$*-clone)" then; \
-		git clone $($*-git-repo) $@ \
-		if [ "$($*-git-commit)" != "" ] then; git checkout $($*-git-commit); fi \
+	$(call remote-maybe, if [ ! -d $@ ]; then \
+		git clone $($*-git-repo) $@ ;\
+		if [ "$($*-git-commit)" != "" ]; then git checkout $($*-git-commit); fi; \
 	fi)
-	$(call remote-maybe, @cd $@ && git pull)
+	$(call remote-maybe, cd $@ && git pull)
 
 %-git-purge:
 	$(call remote-maybe, rm -rf $(SOURCES_DIR)/$*-git)
@@ -92,24 +92,24 @@ $(SOURCES_DIR)/%-tar : | $(DRAFTS_DIR)/$$*.tar.gz
 $(BZ_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-bz
 
 .SECONDARY:
-$(DRAFTS_DIR)/%.bz2: | $(DRAFTS_DIR)
-	echo "Pulling tar project $*."
+$(DRAFTS_DIR)/bz-%.bz2: | $(DRAFTS_DIR)
+	echo "Pulling bz2 project $*."
 	wget $($*-bz-url) -O $@
 
 .SECONDEXPANSION :
-$(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/$$*.bz2
+$(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/bz-$$*.bz2
 	mkdir $@
-	cd $@ && bzip2 -dv  $(DRAFTS_DIR)/$*.bz2
+	cd $@ && bzip2 -dv $(DRAFTS_DIR)/bz-$*.bz2
 
 %-bz-clean:
-	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/$*.bz2
+	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/bz-$*.bz2
 
 
 # Raw projects are projects that do not need to be extracted in any way.
 $(RAW_PROJECTS) :  $(DRAFTS_DIR)/raw-$$@ | $(DRAFTS_DIR)
 
 $(DRAFTS_DIR)/raw-% :
-	echo "Pulling raw project $*."
+	echo "Pulling raw project $*"
 	wget $($*-raw-url) -O $@
 
 # Lazies
