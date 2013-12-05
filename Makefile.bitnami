@@ -1,10 +1,20 @@
+# We will need these for the dump
+MYSQL_USER=csail
+MYSQL_PASS=pass
+
+MEDIAWIKI_ROOT=$(FILESYSTEM_ROOT)/apps/mediawiki
+
 bitnami-mediawiki.run-raw-url=https://bitnami.com/redirect/to/27493/bitnami-mediawiki-1.21.3-0-linux-x64-installer.run
 RAW_PROJECTS += bitnami-mediawiki.run
 
-bitnami-mediawiki-build: bitnami-mediawiki.run
+bitnami-mediawiki-build: $(MEDIAWIKI_ROOT)
+
+$(MEDIAWIKI_ROOT): bitnami-mediawiki.run
 	chmod a+x $(DRAFTS_DIR)/raw-bitnami-mediawiki.run
 	$(DRAFTS_DIR)/raw-bitnami-mediawiki.run --prefix $(FILESYSTEM_ROOT) \
 		--optionfile $(DATA_DIR)/bitnami-mediawiki.setup \
+		--mysql_database_username $(MYSQL_USER) \
+		--mysql_database_password $(MYSQL_PASS) \
 		--mode unattended
 
 bmw-run:

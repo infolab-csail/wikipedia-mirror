@@ -1,9 +1,47 @@
 # This is all the wiki related stuff
+## Wikipedia
+WIKIPEDIA_BZ2_URL=http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
 
-## DOC
-# If you are using your own apache server use HTDOCS_DIR to tell me
-# where to install mediawiki. The default is /opt/lampp/htdocs/. To
-# define a subdir in htdocs use HTDOCS_SUBDIR (default is wikipedia).
+## Wikipedia Dump unzipped
+# This is not really to be used just have it here in case anyone wants
+# to look at
+wikipedia-dump.xml-bz-url=$(WIKIPEDIA_BZ2_URL)
+BZ_PROJECTS += wikipedia-dump.xml
+
+wikipedia-dump-xml: wikipedia-dump.xml
+
+wikipedia-dump-xml-clean: wikipedia-dump.xml-bz-clean
+
+## Wikipedia Dump raw
+# mwdumper handles bziped archives so we just need this raw. Look
+# above if you need plain xml. Also note the naming of the
+# project. This way I use the same dowloaded blob for both
+# whikipedia-dump.xml and wikipedia-dump.xml.bz2 raw.
+wikipedia-dump.xml.bz2-raw-url=$(WIKIPEDIA_BZ2_URL)
+RAW_PROJECTS += wikipedia-dump.xml.bz2
+
+wikipedia-dump : wikipedia-dump.xml.bz2
+	@echo "Getting the raw dump."
+
+## MWDumper
+# You will need jde and jre. For more info see here:
+# http://www.mediawiki.org/wiki/Mwdumper
+mwdumper-git-repo=http://www.mediawiki.org/wiki/Manual:Importing_XML_dumps
+GIT_PROJECTS += mwdumper
+mwdumper-build: mwdumper wikipedia-dump bitnami-mediawiki-build
+	@echo "XXX: add output paths so they will make more sense in errors. This may take a while."
+	source $(FILESYSTEM_ROOT)/use_mediawiki && \ # This fixes $PATH for mysql
+	cd $(SOURCES_DIR)/mwdumper-git/src/ && \
+	javac org/mediawiki/dumper/Dumper.java && \
+	cd .. && \
+	java -classpath ./src org.mediawiki.dumper.Dumper --format=sql:1.5 $(DRAFTS_DIR)/wikipedia-dump.xml.bz2 | \
+		mysql -u $(MYSQL_USER) -p $(MYSQL_PASS)
+
+
+###### WikiMedia vanilla build. ######
+# Below is a wikimedia build that applies if you use a server stack
+# that does not contain wikimedia.
+
 HTDOCS_DIR=/opt/lampp/htdocs
 HTDOCS_SUBDIR=wikipedia
 WIKIMEDIA_ROOT=$(HTDOCS_DIR)/$(HTDOCS_SUBDIR)
@@ -34,10 +72,3 @@ wikimedia-build: wikimedia htdocs-permissions | $(WIKIMEDIA_ROOT)
 # created it we would be able to remove it.
 wikimedia-uninstall:
 	rm -rf $(WIKIMEDIA_ROOT)
-
-wikipedia-dump.xml-bz-url=http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
-BZ_PROJECTS += wikipedia-dump.xml
-
-wikipedia-dump: wikipedia-dump.xml
-
-wikipedia-dump-clean: wikipedia-dump.xml-bz-clean
