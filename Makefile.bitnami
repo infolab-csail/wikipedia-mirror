@@ -1,0 +1,28 @@
+WIKI_NAME="CSAIL Wikipedia"
+DB_USER="csail"
+DB_PASS="p@$$w0rd"
+DB_NAME="wikipedia"
+BASE_USER="csail"
+BASE_PASS="p422wOrD"
+
+bitnami-mediawiki.run-raw-url=https://bitnami.com/redirect/to/27493/bitnami-mediawiki-1.21.3-0-linux-x64-installer.run
+RAW_PROJECTS += bitnami-mediawiki.run
+
+bitnami-mediawiki-build: bitnami-mediawiki.run
+	chmod a+x $(DRAFTS_DIR)/raw-bitnami-mediawiki.run
+	$(DRAFTS_DIR)/raw-bitnami-mediawiki.run --prefix $(FILESYSTEM_ROOT) \
+		--optionfile $(DATA_DIR)/bitnami-mediawiki.setup \
+		--mode unattended
+
+bmw-run:
+	$(FILESYSTEM_ROOT)/ctlscript.sh start
+
+bmw-kill:
+	$(FILESYSTEM_ROOT)/ctlscript.sh stop
+
+bmw-restart:
+	$(FILESYSTEM_ROOT)/ctlscript.sh restart
+
+bmw-uninstall:
+	$(FILESYSTEM_ROOT)/uninstall
+	rm -rf $(FILESYSTEM_ROOT)

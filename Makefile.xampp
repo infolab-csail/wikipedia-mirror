@@ -19,20 +19,51 @@ RAW_PROJECTS += xampp.run
 $(XAMPP_INSTALLER): $(DRAFTS_DIR)/raw-xampp.run | $(FSROOT_TMP)
 	cp $(DRAFTS_DIR)/raw-xampp.run $@
 
-jail:	$(FILESYSTEM_ROOT)/bin/bash \
+ifeq ($(XAMPP_SCOPE),local)
+prepare-env: jail
+else
+prepare-env:
+endif
+
+jail:	jail-bind \
+	$(FILESYSTEM_ROOT)/bin/bash \
 	$(FILESYSTEM_ROOT)/bin/ln \
 	$(FILESYSTEM_ROOT)/bin/ls \
 	$(FILESYSTEM_ROOT)/usr/bin/chown \
-	$(FILESYSTEM_ROOT)/bin/rm \
-	$(FILESYSTEM_ROOT)/bin/whoami \
+	$(FILESYSTEM_ROOT)/usr/bin/rm \
+	$(FILESYSTEM_ROOT)/usr/bin/whoami \
 	$(FILESYSTEM_ROOT)/usr/bin/useradd \
-	$(FILESYSTEM_ROOT)/bin/groupadd \
+	$(FILESYSTEM_ROOT)/usr/bin/groupadd \
+	$(FILESYSTEM_ROOT)/usr/bin/gawk \
+	$(FILESYSTEM_ROOT)/usr/bin/egrep \
+	$(FILESYSTEM_ROOT)/usr/bin/id \
+	$(FILESYSTEM_ROOT)/usr/bin/test \
+	$(FILESYSTEM_ROOT)/usr/bin/netstat \
+	$(FILESYSTEM_ROOT)/usr/bin/expr \
+	$(FILESYSTEM_ROOT)/usr/bin/cat \
+	$(FILESYSTEM_ROOT)/bin/uname \
+	$(FILESYSTEM_ROOT)/bin/sleep \
+	$(FILESYSTEM_ROOT)/usr/bin/tail \
+	$(FILESYSTEM_ROOT)/usr/bin/hostname \
+	$(FILESYSTEM_ROOT)/usr/bin/httpd \
+	$(FILESYSTEM_ROOT)/bin/sh \
+	$(FILESYSTEM_ROOT)/bin/su \
+	$(FILESYSTEM_ROOT)/bin/suexec \
 	$(FILESYSTEM_ROOT)/etc/group \
+	$(FILESYSTEM_ROOT)/etc/hosts \
 	$(FILESYSTEM_ROOT)/etc/passwd
 
+# Here we actually need sudo.
+jail-bind: | $(FSROOT_PROC) $(FSROOT_DEV) $(FSROOT_SYS)
+	mount -l | grep $(FSROOT_PROC) > /dev/null || sudo mount -o bind /proc $(FSROOT_PROC)
+	mount -l | grep $(FSROOT_DEV)  > /dev/null || sudo mount -o bind /dev $(FSROOT_DEV)
+	mount -l | grep $(FSROOT_SYS)  > /dev/null || sudo mount -o bind /sys $(FSROOT_SYS)
+
+
+CMD=/bin/bash
 # Zsh is a bit sneaky with it's libraries so I will just use bash.
 jail-shell: jail
-	fakechroot fakeroot chroot $(FILESYSTEM_ROOT) /bin/bash
+	fakechroot fakeroot chroot $(FILESYSTEM_ROOT) $(CMD)
 
 %-symbolic-deps:
 	for i in $$(ldd `which $*` | grep -o "/[^ ]*"); do \
@@ -52,7 +83,7 @@ $(FILESYSTEM_ROOT)/usr/bin/%: $$*-symbolic-deps | $(FSROOT_USRBIN)
 $(FILESYSTEM_ROOT)/bin/%: $$*-symbolic-deps | $(FSROOT_BIN)
 	cp $$(which $*) $@
 
-xampp-build: $(XAMPP_INSTALLER) jail | $(FSROOT_TMP)
+xampp-build: $(XAMPP_INSTALLER) prepare-env | $(FSROOT_TMP)
 	@echo "Building the $(XAMPP_SCOPE) setup with root: $(XAMPP_ROOTACCESS)"
 	if [ "$$(cat /etc/group | grep nogroup)" = "" ]; then \
 		$(XAMPP_ROOTACCESS) groupadd nogroup; \
@@ -61,11 +92,11 @@ xampp-build: $(XAMPP_INSTALLER) jail | $(FSROOT_TMP)
 	chmod a+x $(XAMPP_INSTALLER)
 	$(XAMPP_ROOTACCESS) /tmp/xampp.run --mode unattended
 
-xampp-uninstall: jail
+xampp-uninstall: prepare-env
 	$(XAMPP_ROOTACCESS) rm -rf /opt/lampp
 
-xampp-run:
+xampp-run: prepare-env
 	$(XAMPP_ROOTACCESS) /opt/lampp/lampp start
 
-xampp-kill:
+xampp-kill: prepare-env
 	$(XAMPP_ROOTACCESS) /opt/lampp/lampp stop

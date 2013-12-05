@@ -1,0 +1,10 @@
+base_user_name=CSAIL Lab
+base_mail=example@example.com
+base_user=csail
+base_password=basepass
+mysql_password=mysqlpass
+mysql_database_name=wikipedia_db
+mysql_database_username=csail
+mysql_database_password=dbpass
+mediawiki_name=CSAIL Wikipedia
+mysql_port=3307
