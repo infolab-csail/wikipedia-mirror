@@ -106,9 +106,9 @@ $(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/bz-$$*.bz2
 
 
 # Raw projects are projects that do not need to be extracted in any way.
-$(RAW_PROJECTS) :  $(DRAFTS_DIR)/raw-$$@ | $(DRAFTS_DIR)
+$(RAW_PROJECTS) :  $(DRAFTS_DIR)/raw-$$@
 
-$(DRAFTS_DIR)/raw-% :
+$(DRAFTS_DIR)/raw-% : | $(DRAFTS_DIR)
 	echo "Pulling raw project $*"
 	wget $($*-raw-url) -O $@
 
