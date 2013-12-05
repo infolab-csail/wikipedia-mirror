@@ -25,7 +25,7 @@ wikipedia-dump : wikipedia-dump.xml.bz2
 ## MWDumper
 # You will need jde and jre. For more info see here:
 # http://www.mediawiki.org/wiki/Mwdumper
-mwdumper-git-repo=https://git.wikimedia.org/git/mediawiki/tools/mwdumper.git
+mwdumper-git-repo=https://gerrit.wikimedia.org/r/p/mediawiki/tools/mwdumper.git
 GIT_PROJECTS += mwdumper
 MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
 
