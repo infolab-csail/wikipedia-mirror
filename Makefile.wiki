@@ -1,4 +1,10 @@
 # This is all the wiki related stuff
+## Wikipedia templates
+WIKIPEDIA_TEMPLATELINKS_URL=http://dumps.wikimedia.org/enwiki/latest/enwiki-latest-templatelinks.sql.gz
+wikipedia-templatelinks.sql-gz-url=$(WIKIPEDIA_TEMPLATELINKS_URL)
+GZ_PROJECTS += wikipedia-templatelinks.sql
+
+
 ## Wikipedia
 WIKIPEDIA_BZ2_URL=http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
 
@@ -29,7 +35,8 @@ mwdumper-git-repo=https://gerrit.wikimedia.org/r/p/mediawiki/tools/mwdumper.git
 GIT_PROJECTS += mwdumper
 MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
 
-$(TOOLS_DIR)/mwdumper.jar: mwdumper | $(TOOLS_DIR)
+# XXX: I will assume it is cloned for this once
+$(TOOLS_DIR)/mwdumper.jar: | $(TOOLS_DIR)
 	cd $(SOURCES_DIR)/mwdumper-git/ && \
 	mvn package
 	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
@@ -38,8 +45,8 @@ $(DRAFTS_DIR)/wikipedia_dump.sql: wikipedia-dump bitnami-mediawiki-build $(TOOLS
 	java -jar $(TOOLS_DIR)/mwdumper.jar --format=sql:1.5 $(DRAFTS_DIR)/raw-wikipedia-dump.xml.bz2 > $(DRAFTS_DIR)/wikipedia_dump.sql
 
 # XXX: move this to the server stack
-mwdumper-load: $(DRAFTS_DIR)/wikipedia_dump.sql
-	$(FILESYSTEM_ROOT)/mysql/bin/mysql -u $(MYSQL_USER) -p $(MYSQL_PASS)
+mwdumper-load: $(FILESYSTEM_ROOT)/ctlscript.sh mwdumper $(DRAFTS_DIR)/wikipedia_dump.sql bmw-run
+	cat  $(DRAFTS_DIR)/wikipedia_dump.sql | $(FILESYSTEM_ROOT)/mysql/bin/mysql -u $(MYSQL_USER) --password=$(MYSQL_PASS) $(MYSQL_DB)
 
 
 ###### WikiMedia vanilla build. ######

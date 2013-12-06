@@ -104,6 +104,23 @@ $(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/bz-$$*.bz2
 %-bz-clean:
 	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/bz-$*.bz2
 
+# Gz archives
+.SECONDEXPANSION :
+$(BZ_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-gz
+
+.SECONDARY:
+$(DRAFTS_DIR)/gz-%.bz2: | $(DRAFTS_DIR)
+	echo "Pulling bz2 project $*."
+	wget $($*-gz-url) -O $@
+
+.SECONDEXPANSION :
+$(SOURCES_DIR)/%-gz : | $(DRAFTS_DIR)/bz-$$*.bz2
+	mkdir $@
+	cd $@ && bzip2 -dv $(DRAFTS_DIR)/bz-$*.bz2
+
+%-bz-clean:
+	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/bz-$*.bz2
+
 
 # Raw projects are projects that do not need to be extracted in any way.
 $(RAW_PROJECTS) :  $(DRAFTS_DIR)/raw-$$@
