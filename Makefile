@@ -19,7 +19,7 @@ TOOLS_DIR=$(ROOT_DIR)/tools
 LAZY_DIR=$(ROOT_DIR)/lazy
 FILESYSTEM_ROOT=$(ROOT_DIR)/fs
 
-ROOT_DIRECTORIES = $(SOURCES_DIR) $(DRAFTS_DIR) $(RESOURCES_DIR) $(TOOLS_DIR) $(LAZY_DIR) $(FILESYSTEM_ROOT)
+ROOT_DIRECTORIES = $(SOURCES_DIR) $(DRAFTS_DIR) $(RESOURCES_DIR) $(TOOLS_DIR) $(LAZY_DIR)
 
 # Filesystem root directories
 FSROOT_TMP=$(FILESYSTEM_ROOT)/tmp
@@ -33,6 +33,19 @@ FSROOT_DEV=$(FILESYSTEM_ROOT)/dev
 FSROOT_DIRECTORIES = $(FSROOT_PROC) $(FSROOT_DEV) $(FSROOT_SYS) $(FSROOT_TMP) $(FSROOT_BIN) $(FSROOT_USRBIN) $(FSROOT_ETC)
 
 DIRECTORIES = $(FSROOT_DIRECTORIES) $(ROOT_DIRECTORIES)
+
+# Filesystem root might contain sockets and thus MUST NOT be on afs.
+# Only the first afs root found is considered and also
+AFS_ROOT=$(shell mount -l | grep "AFS" | grep -o "/[^ ]*" | head -1)
+ifneq ($(shell echo $(FILESYSTEM_ROOT) | grep "^$(AFS_ROOT)"),)
+LOCAL_FSROOT=/scratch/wikipedia_srv
+ROOT_DIRECTORIES += $(LOCAL_FSROOT)
+$(FILESYSTEM_ROOT): | $(LOCAL_FSROOT)
+	@echo "AFS directory detected. Using LOCAL_FSROOT ($(LOCAL_FSROOT))"
+	ln -s $(LOCAL_FSROOT) $(FILESYSTEM_ROOT)
+else
+DIRECTORIES += $(FILESYSTEM_ROOT)
+endif
 
 # Includes should be after command declarations and before targets
 include Makefile.xampp
