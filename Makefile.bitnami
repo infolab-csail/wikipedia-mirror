@@ -13,7 +13,7 @@ bitnami-mediawiki-build bmw-install: $(MEDIAWIKI_ROOT)
 
 $(FILESYSTEM_ROOT)/ctlscript.sh: bitnami-mediawiki-build
 
-$(MEDIAWIKI_ROOT): bitnami-mediawiki.run
+$(MEDIAWIKI_ROOT): bitnami-mediawiki.run | $(DRAFTS_DIR)
 	chmod a+x $(DRAFTS_DIR)/raw-bitnami-mediawiki.run
 	$(DRAFTS_DIR)/raw-bitnami-mediawiki.run --prefix $(FILESYSTEM_ROOT) \
 		--optionfile $(DATA_DIR)/bitnami-mediawiki.setup \
@@ -38,3 +38,6 @@ bmw-uninstall:
 
 mysql-shell: bmw-run
 	$(FILESYSTEM_ROOT)/mysql/bin/mysql -u root -p
+
+mwdumper-load: $(FILESYSTEM_ROOT)/ctlscript.sh mwdumper $(WIKIPEDIA_DUMPS) bmw-run  bitnami-mediawiki-build
+	cat  $(DRAFTS_DIR)/wikipedia_dump.sql | $(FILESYSTEM_ROOT)/mysql/bin/mysql -u $(MYSQL_USER) --password=$(MYSQL_PASS) $(MYSQL_DB)

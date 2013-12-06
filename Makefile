@@ -38,11 +38,12 @@ DIRECTORIES = $(FSROOT_DIRECTORIES) $(ROOT_DIRECTORIES)
 include Makefile.xampp
 include Makefile.wiki
 include Makefile.bitnami
+include Makefile.dumps
 
 $(FSROOT_DIRECTORIES): | $(FILESYSTEM_ROOT)
 
 $(DIRECTORIES):
-	[ -d $@ ] || mkdir -p $@
+	[ -d $@ ] || [ -h $@ ] || mkdir -p $@
 
 show-projects:
 	@echo "Git Projects: $(GIT_PROJECTS)"
@@ -106,20 +107,20 @@ $(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/bz-$$*.bz2
 
 # Gz archives
 .SECONDEXPANSION :
-$(BZ_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-gz
+$(GZ_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-gz
 
 .SECONDARY:
-$(DRAFTS_DIR)/gz-%.bz2: | $(DRAFTS_DIR)
-	echo "Pulling bz2 project $*."
+$(DRAFTS_DIR)/gz-%.gz: | $(DRAFTS_DIR)
+	echo "Pulling gz project $*."
 	wget $($*-gz-url) -O $@
 
 .SECONDEXPANSION :
-$(SOURCES_DIR)/%-gz : | $(DRAFTS_DIR)/bz-$$*.bz2
+$(SOURCES_DIR)/%-gz : | $(DRAFTS_DIR)/gz-$$*.gz
 	mkdir $@
-	cd $@ && bzip2 -dv $(DRAFTS_DIR)/bz-$*.bz2
+	cd $@ && gzip -dv $(DRAFTS_DIR)/gz-$*.gz
 
-%-bz-clean:
-	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/bz-$*.bz2
+%-gz-clean:
+	rm -rf $(SOURCES_DIR)/$*-gz $(DRAFTS_DIR)/gz-$*.gz
 
 
 # Raw projects are projects that do not need to be extracted in any way.

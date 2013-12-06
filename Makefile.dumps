@@ -1,0 +1,27 @@
+## Wikipedia templates
+WIKIPEDIA_TEMPLATELINKS_URL=http://dumps.wikimedia.org/enwiki/latest/enwiki-latest-templatelinks.sql.gz
+wikipedia-templatelinks.sql-gz-url=$(WIKIPEDIA_TEMPLATELINKS_URL)
+GZ_PROJECTS += wikipedia-templatelinks.sql
+
+## Wikipedia
+WIKIPEDIA_BZ2_URL=http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
+
+## Wikipedia Dump unzipped
+# This is not really to be used just have it here in case anyone wants
+# to look at
+wikipedia-dump.xml-bz-url=$(WIKIPEDIA_BZ2_URL)
+BZ_PROJECTS += wikipedia-dump.xml
+
+wikipedia-dump-xml: wikipedia-dump.xml
+
+wikipedia-dump-xml-clean: wikipedia-dump.xml-bz-clean
+
+## Wikipedia Dump raw
+# mwdumper handles bziped archives so we just need this raw. Look
+# above if you need plain xml.
+
+wikipedia-dump.xml.bz2-raw-url=$(WIKIPEDIA_BZ2_URL)
+RAW_PROJECTS += wikipedia-dump.xml.bz2
+
+wikipedia-dump : wikipedia-dump.xml.bz2
+	@echo "Getting the raw dump."

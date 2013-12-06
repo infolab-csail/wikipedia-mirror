@@ -3,4 +3,3 @@ base_mail=example@example.com
 base_user=csail
 base_password=basepass
 mediawiki_name=CSAIL Wikipedia
-mysql_port=3307
