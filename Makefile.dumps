@@ -2,6 +2,7 @@
 WIKIPEDIA_TEMPLATELINKS_URL=http://dumps.wikimedia.org/enwiki/latest/enwiki-latest-templatelinks.sql.gz
 wikipedia-templatelinks.sql-gz-url=$(WIKIPEDIA_TEMPLATELINKS_URL)
 GZ_PROJECTS += wikipedia-templatelinks.sql
+WIKIPEDIA_DUMPS += $(SOURCES_DIR)/wikipedia-templatelinks.sql-gz/wikipedia-templatelinks.sql
 
 ## Wikipedia
 WIKIPEDIA_BZ2_URL=http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
@@ -22,6 +23,23 @@ wikipedia-dump-xml-clean: wikipedia-dump.xml-bz-clean
 
 wikipedia-dump.xml.bz2-raw-url=$(WIKIPEDIA_BZ2_URL)
 RAW_PROJECTS += wikipedia-dump.xml.bz2
-
+# WIKIPEDIA_DUMPS += $(DRAFTS_DIR)/raw-wikipedia-dump.xml.bz2
 wikipedia-dump : wikipedia-dump.xml.bz2
 	@echo "Getting the raw dump."
+
+## MWDumper
+# You will need jde and jre. For more info see here:
+# http://www.mediawiki.org/wiki/Mwdumper
+mwdumper-git-repo=https://gerrit.wikimedia.org/r/p/mediawiki/tools/mwdumper.git
+GIT_PROJECTS += mwdumper
+MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
+
+# XXX: I will assume it is cloned for this once
+$(TOOLS_DIR)/mwdumper.jar: | $(TOOLS_DIR)
+	cd $(SOURCES_DIR)/mwdumper-git/ && \
+	mvn package
+	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
+
+WIKIPEDIA_DUMPS += $(DRAFTS_DIR)/wikipedia_dump.sql
+$(DRAFTS_DIR)/wikipedia_dump.sql: wikipedia-dump $(TOOLS_DIR)/mwdumper.jar
+	java -jar $(TOOLS_DIR)/mwdumper.jar --format=sql:1.5 $(DRAFTS_DIR)/raw-wikipedia-dump.xml.bz2 > $(DRAFTS_DIR)/wikipedia_dump.sql

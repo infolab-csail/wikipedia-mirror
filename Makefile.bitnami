@@ -1,43 +1,61 @@
-# We will need these for the dump
-MYSQL_USER=csail
-MYSQL_PASS=pass
-MYSQL_DB=bitnami_mediawiki
-MYSQL_ROOT_PASS=mysqlpass
+#################### VARIABLES ####################
+BMW_MYSQL_USER=csail
+BMW_MYSQL_PASS=pass
+BMW_MYSQL_DB=bitnami_mediawiki
+BMW_MYSQL_ROOT_PASS=mysqlpass
+
+MYSQL=$(FILESYSTEM_ROOT)/mysql/bin/mysql
+MYSQL_CMD=$(MYSQL) -u $(BMW_MYSQL_USER) --password=$(BMW_MYSQL_PASS) $(BMW_MYSQL_DB)
+BMWCTRL=$(FILESYSTEM_ROOT)/ctlscript.sh
+
+BMW_TARGETS=$(MYSQL) $(BMWCTRL)
 
 MEDIAWIKI_ROOT=$(FILESYSTEM_ROOT)/apps/mediawiki
 
 bitnami-mediawiki.run-raw-url=https://bitnami.com/redirect/to/27493/bitnami-mediawiki-1.21.3-0-linux-x64-installer.run
 RAW_PROJECTS += bitnami-mediawiki.run
 
-bitnami-mediawiki-build bmw-install: $(MEDIAWIKI_ROOT)
 
-$(FILESYSTEM_ROOT)/ctlscript.sh: bitnami-mediawiki-build
+#################### TARGETS ####################
+# ~~~~~~~~ BitnamiWikiMedia ~~~~~~~~~~
 
-$(MEDIAWIKI_ROOT): bitnami-mediawiki.run | $(DRAFTS_DIR)
+$(BMW_TARGETS): bmw-install
+
+bmw-install : bitnami-mediawiki.run | $(FILESYSTEM_ROOT) $(DRAFTS_DIR)
 	chmod a+x $(DRAFTS_DIR)/raw-bitnami-mediawiki.run
+	cd $(FILESYSTEM_ROOT) && \
 	$(DRAFTS_DIR)/raw-bitnami-mediawiki.run --prefix $(FILESYSTEM_ROOT) \
 		--optionfile $(DATA_DIR)/bitnami-mediawiki.setup \
-		--mysql_database_username $(MYSQL_USER) \
-		--mysql_database_password $(MYSQL_PASS) \
-		--mysql_database_name $(MYSQL_DB) \
-		--mysql_password $(MYSQL_ROOT_PASS) \
+		--mysql_database_username $(BMW_MYSQL_USER) \
+		--mysql_database_password $(BMW_MYSQL_PASS) \
+		--mysql_database_name $(BMW_MYSQL_DB) \
+		--mysql_password $(BMW_MYSQL_ROOT_PASS) \
 		--mode unattended
 
-bmw-run:
-	$(FILESYSTEM_ROOT)/ctlscript.sh start
+bmw-run: $(BMWCTRL)
+	 ps aux | grep "mysql" > /dev/null || $(BMWCTRL) start
 
 bmw-kill:
-	$(FILESYSTEM_ROOT)/ctlscript.sh stop
+	if [ -x $(BMWCTRL) ] ; then \
+		$(BMWCTRL) stop; \
+	else \
+		killall httpd mysqld.bin; \
+	fi
 
-bmw-restart:
-	$(FILESYSTEM_ROOT)/ctlscript.sh restart
+bmw-restart: $(BMWCTRL)
+	$(BMWCTRL) restart
 
-bmw-uninstall:
-	$(FILESYSTEM_ROOT)/uninstall --mode unattended
+bmw-uninstall: bmw-kill
+	[ ! -x $(FILESYSTEM_ROOT)/uninstall ] || $(FILESYSTEM_ROOT)/uninstall --mode unattended
 	rm -rf $(FILESYSTEM_ROOT)
 
-mysql-shell: bmw-run
-	$(FILESYSTEM_ROOT)/mysql/bin/mysql -u root -p
+# ~~~~~~~~~~ MySQL ~~~~~~~~~~
+mysql-shell: $(MYSQL) bmw-run
+	$(MYSQL_CMD)
 
-mwdumper-load: $(FILESYSTEM_ROOT)/ctlscript.sh mwdumper $(WIKIPEDIA_DUMPS) bmw-run  bitnami-mediawiki-build
-	cat  $(DRAFTS_DIR)/wikipedia_dump.sql | $(FILESYSTEM_ROOT)/mysql/bin/mysql -u $(MYSQL_USER) --password=$(MYSQL_PASS) $(MYSQL_DB)
+# XXX: the dumps do not drop tables before adding themselves so have that in mind.
+mysql-load: $(MYSQL) mwdumper $(WIKIPEDIA_DUMPS) bmw-run mysql-clear
+	cat  $(WIKIPEDIA_DUMPS) | $(MYSQL_CMD)
+
+mysql-clear: bmw-run
+	$(DATA_DIR)/sql-clear.sh $(BMW_MYSQL_USER) $(BMW_MYSQL_PASS) $(BMW_MYSQL_DB) $(MYSQL)

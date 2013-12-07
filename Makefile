@@ -1,5 +1,6 @@
 MAKETHREADS=4
 MAKE=make -j$(MAKETHREADS)
+RSYNC=rsync -avz
 
 ifneq ($(REMOTE_SERVER),)
 remote-maybe=echo "==== Running on $(REMOTE_SERVER) ====" && ssh $(REMOTE_SERVER) 'PATH=$(PATH) && $1'
@@ -12,14 +13,15 @@ force: ;
 
 # My directories
 ROOT_DIR=$(PWD)
-DATA_DIR=$(ROOT_DIR)/data
+#Data is part of the repo
+DATA_DIR=$(PWD)/data
 SOURCES_DIR=$(ROOT_DIR)/sources
 DRAFTS_DIR=$(ROOT_DIR)/drafts
 TOOLS_DIR=$(ROOT_DIR)/tools
 LAZY_DIR=$(ROOT_DIR)/lazy
 FILESYSTEM_ROOT=$(ROOT_DIR)/fs
 
-ROOT_DIRECTORIES = $(SOURCES_DIR) $(DRAFTS_DIR) $(RESOURCES_DIR) $(TOOLS_DIR) $(LAZY_DIR)
+ROOT_DIRECTORIES = $(ROOT_DIR) $(SOURCES_DIR) $(DRAFTS_DIR) $(RESOURCES_DIR) $(TOOLS_DIR) $(LAZY_DIR)
 
 # Filesystem root directories
 FSROOT_TMP=$(FILESYSTEM_ROOT)/tmp
@@ -35,10 +37,16 @@ FSROOT_DIRECTORIES = $(FSROOT_PROC) $(FSROOT_DEV) $(FSROOT_SYS) $(FSROOT_TMP) $(
 DIRECTORIES = $(FSROOT_DIRECTORIES) $(ROOT_DIRECTORIES)
 
 # Filesystem root might contain sockets and thus MUST NOT be on afs.
-# Only the first afs root found is considered and also
+# Only the first afs root found is considered.
+
+# NOTE: This is only to solve the problem of sockets. To solve the
+# disk space quota problem move the ROOT_DIR. Also we do not require
+# the user to move FILESYSTEM_ROOT by hand because it would add
+# unneeded overhead.
 AFS_ROOT=$(shell mount -l | grep "AFS" | grep -o "/[^ ]*" | head -1)
+
 ifneq ($(shell echo $(FILESYSTEM_ROOT) | grep "^$(AFS_ROOT)"),)
-LOCAL_FSROOT=/scratch/wikipedia_srv
+LOCAL_FSROOT=/scratch/wikipedia_srv/fs
 ROOT_DIRECTORIES += $(LOCAL_FSROOT)
 $(FILESYSTEM_ROOT): | $(LOCAL_FSROOT)
 	@echo "AFS directory detected. Using LOCAL_FSROOT ($(LOCAL_FSROOT))"
@@ -47,21 +55,33 @@ else
 DIRECTORIES += $(FILESYSTEM_ROOT)
 endif
 
+# KICKSTART_DIR=/some/dir
+
 # Includes should be after command declarations and before targets
 include Makefile.xampp
 include Makefile.wiki
 include Makefile.bitnami
 include Makefile.dumps
 
-$(FSROOT_DIRECTORIES): | $(FILESYSTEM_ROOT)
+$(FSROOT_DIRECTORIES): $(FILESYSTEM_ROOT)
 
 $(DIRECTORIES):
 	[ -d $@ ] || [ -h $@ ] || mkdir -p $@
+
+# Copy files from KICKSTART_DIR which is tha ROOT_DIR of another
+# project to this ROOT_DIR with rsync. This saves computation time and
+# bandwidth. KICKSTART_DIR can be remote.
+kickstart: kickstart-sources kickstart-drafts
+
+kickstart-%:
+	$(RSYNC) $(KICKSTART_DIR)/$* $(ROOT_DIR)/$*
 
 show-projects:
 	@echo "Git Projects: $(GIT_PROJECTS)"
 	@echo "Archive Projects: $(TAR_PROJECTS)"
 	@echo "Raw projects: $(RAW_PROJECTS)"
+	@echo "Bzip projects: $(BZ_PROJECTS)"
+	@echo "Gzip projects: $(GZ_PROJECTS)"
 
 # Have repositories
 .SECONDEXPANSION :
@@ -130,7 +150,7 @@ $(DRAFTS_DIR)/gz-%.gz: | $(DRAFTS_DIR)
 .SECONDEXPANSION :
 $(SOURCES_DIR)/%-gz : | $(DRAFTS_DIR)/gz-$$*.gz
 	mkdir $@
-	cd $@ && gzip -dv $(DRAFTS_DIR)/gz-$*.gz
+	cd $@ && gzip -dc $(DRAFTS_DIR)/gz-$*.gz > $*
 
 %-gz-clean:
 	rm -rf $(SOURCES_DIR)/$*-gz $(DRAFTS_DIR)/gz-$*.gz

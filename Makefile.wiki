@@ -1,22 +1,6 @@
 # This is all the operational stuff about the wiki. Dumps are
 # retrieved from Makefile.dumps
 
-## MWDumper
-# You will need jde and jre. For more info see here:
-# http://www.mediawiki.org/wiki/Mwdumper
-mwdumper-git-repo=https://gerrit.wikimedia.org/r/p/mediawiki/tools/mwdumper.git
-GIT_PROJECTS += mwdumper
-MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
-
-# XXX: I will assume it is cloned for this once
-$(TOOLS_DIR)/mwdumper.jar: | $(TOOLS_DIR)
-	cd $(SOURCES_DIR)/mwdumper-git/ && \
-	mvn package
-	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
-
-$(DRAFTS_DIR)/wikipedia_dump.sql: wikipedia-dump $(TOOLS_DIR)/mwdumper.jar
-	java -jar $(TOOLS_DIR)/mwdumper.jar --format=sql:1.5 $(DRAFTS_DIR)/raw-wikipedia-dump.xml.bz2 > $(DRAFTS_DIR)/wikipedia_dump.sql
-
 ###### WikiMedia vanilla build. ######
 # Below is a wikimedia build that applies if you use a server stack
 # that does not contain wikimedia.
