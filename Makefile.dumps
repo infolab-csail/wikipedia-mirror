@@ -2,7 +2,7 @@
 WIKIPEDIA_TEMPLATELINKS_URL=http://dumps.wikimedia.org/enwiki/latest/enwiki-latest-templatelinks.sql.gz
 wikipedia-templatelinks.sql-gz-url=$(WIKIPEDIA_TEMPLATELINKS_URL)
 GZ_PROJECTS += wikipedia-templatelinks.sql
-WIKIPEDIA_DUMPS += $(SOURCES_DIR)/wikipedia-templatelinks.sql-gz/wikipedia-templatelinks.sql
+# WIKIPEDIA_DUMPS += $(SOURCES_DIR)/wikipedia-templatelinks.sql-gz/wikipedia-templatelinks.sql
 
 ## Wikipedia
 WIKIPEDIA_BZ2_URL=http://download.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
