@@ -54,11 +54,11 @@ mysql-shell: $(MYSQL) bmw-run
 	$(MYSQL_CMD)
 
 
-DUMP_LINES=$(shell wc -l $(WIKIPEDIA_DUMPS) | tail -1 | awk '{print $$1}')
+DUMP_LINES:=$(shell wc -l $(WIKIPEDIA_DUMPS) | tail -1 | awk '{print $$1}')
 mysql-dump-info:
-	@echo "Lines to be imported: $(DUMP_LINES)"
 	@echo "Files to be imported:"
 	$(foreach var, $(WIKIPEDIA_DUMPS), @echo "$(shell ls -lh $(var) | awk '{print $$5,$$9}')")
+	@echo "Total lines to be imported: $(DUMP_LINES)"
 
 # XXX: the dumps do not drop tables before adding themselves so have that in mind.
 mysql-load: $(WIKIPEDIA_DUMPS) $(MYSQL) bmw-run mysql-clear mysql-dump-info
