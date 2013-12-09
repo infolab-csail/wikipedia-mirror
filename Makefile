@@ -44,7 +44,7 @@ DIRECTORIES = $(FSROOT_DIRECTORIES) $(ROOT_DIRECTORIES)
 # the user to move FILESYSTEM_ROOT by hand because it would add
 # unneeded overhead.
 AFS_ROOT=$(shell mount -l | grep "AFS" | grep -o "/[^ ]*" | head -1)
-
+ifneq ($(AFS_ROOT),)
 ifneq ($(shell echo $(FILESYSTEM_ROOT) | grep "^$(AFS_ROOT)"),)
 LOCAL_FSROOT=/scratch/wikipedia_srv/fs
 ROOT_DIRECTORIES += $(LOCAL_FSROOT)
@@ -54,14 +54,16 @@ $(FILESYSTEM_ROOT): | $(LOCAL_FSROOT)
 else
 DIRECTORIES += $(FILESYSTEM_ROOT)
 endif
-
+else
+DIRECTORIES += $(FILESYSTEM_ROOT)
+endif
 # KICKSTART_DIR=/some/dir
 
 # Includes should be after command declarations and before targets
 include Makefile.xampp
 include Makefile.wiki
-include Makefile.bitnami
 include Makefile.dumps
+include Makefile.bitnami
 
 $(FSROOT_DIRECTORIES): $(FILESYSTEM_ROOT)
 

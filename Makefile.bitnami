@@ -21,7 +21,7 @@ RAW_PROJECTS += bitnami-mediawiki.run
 
 $(BMW_TARGETS): bmw-install
 
-bmw-install : bitnami-mediawiki.run | $(FILESYSTEM_ROOT) $(DRAFTS_DIR)
+bmw-install : bmw-kill bitnami-mediawiki.run | $(FILESYSTEM_ROOT) $(DRAFTS_DIR)
 	chmod a+x $(DRAFTS_DIR)/raw-bitnami-mediawiki.run
 	cd $(FILESYSTEM_ROOT) && \
 	$(DRAFTS_DIR)/raw-bitnami-mediawiki.run --prefix $(FILESYSTEM_ROOT) \
@@ -32,14 +32,14 @@ bmw-install : bitnami-mediawiki.run | $(FILESYSTEM_ROOT) $(DRAFTS_DIR)
 		--mysql_password $(BMW_MYSQL_ROOT_PASS) \
 		--mode unattended
 
-bmw-run: $(BMWCTRL)
-	 ps aux | grep "mysql" > /dev/null || $(BMWCTRL) start
+bmw-run: $(BMWCTRL) bmw-kill
+	if [ -e "$$(ps aux | grep 'mysq[l]')" ]; then echo "already running mysql"; else $(BMWCTRL) start; fi
 
 bmw-kill:
 	if [ -x $(BMWCTRL) ] ; then \
 		$(BMWCTRL) stop; \
 	else \
-		killall httpd mysqld.bin; \
+		killall httpd mysqld.bin || echo "Nothing was running..." ; \
 	fi
 
 bmw-restart: $(BMWCTRL)
@@ -53,9 +53,18 @@ bmw-uninstall: bmw-kill
 mysql-shell: $(MYSQL) bmw-run
 	$(MYSQL_CMD)
 
+
+DUMP_LINES=$(shell wc -l $(WIKIPEDIA_DUMPS) | tail -1 | awk '{print $$1}')
+mysql-dump-info:
+	@echo "Lines to be imported: $(DUMP_LINES)"
+	@echo "Files to be imported:"
+	$(foreach var, $(WIKIPEDIA_DUMPS), @echo "$(shell ls -lh $(var) | awk '{print $$5,$$9}')")
+
 # XXX: the dumps do not drop tables before adding themselves so have that in mind.
-mysql-load: $(MYSQL) mwdumper $(WIKIPEDIA_DUMPS) bmw-run mysql-clear
-	cat  $(WIKIPEDIA_DUMPS) | $(MYSQL_CMD)
+mysql-load: $(WIKIPEDIA_DUMPS) $(MYSQL) bmw-run mysql-clear mysql-dump-info
+	@echo "Loading data to mysql..."
+	@echo "Line from total, line in file, last command time, total time, filename"
+	awk  'BEGIN{ot=systime(); i=0}{ct=systime(); printf " %d/$(DUMP_LINES), %ds, %ds, %s\n", NR, ct-pt, ct-ot, FILENAME ; pt=ct; print | "$(MYSQL_CMD)"}' $(WIKIPEDIA_DUMPS)
 
 mysql-clear: bmw-run
 	$(DATA_DIR)/sql-clear.sh $(BMW_MYSQL_USER) $(BMW_MYSQL_PASS) $(BMW_MYSQL_DB) $(MYSQL)

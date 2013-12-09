@@ -1,30 +1,49 @@
 * Usage
-** Variables
-   These are some variable you can tinker with. This list is not
-   complete but it's pretty comprehensive.
+  See the examples and work it out ;)
 
-** Bitnami
-*** Targets
-**** bitnami-mediawiki-build
-     Build a bitnami instance in [[#filesystem_root][FILESYSTEM_ROOT]].
-**** bmw-run
+** Installing Bitnami MediaWiki
+   Downloads and installs bitnami
+   #+BEGIN_EXAMPLE
+   make bmw-install
+   #+END_EXAMPLE
 
+   To have the downloaded stuff and the install dir in another path
+   use
+   #+BEGIN_EXAMPLE
+   make bmw-install ROOT_DIR=/new/path/of/proj/root
+   #+END_EXAMPLE
 
-** Xampp
-   *WARNING*: XAMPP is built and installed within a jail that is
-   fs. It is incompatible with other server stacks. It also does not
-   work 100% of the time. Use [[#bitnami][bitnami]] instead.
+   NOTE: =ROOT_DIR= is not persistent. The default is the current dir
+   and to run other commands based on an installed env keep redefining
+   ROOT_DIR.
 
-   By default I will try to install xampp to run stuff locally.
-*** Targets
-**** xampp-build
-     Download and install xampp.
+** Uninstalling Bitnami MediaWiki
+   #+BEGIN_EXAMPLE
+   make bmw-uninstall
+   #+END_EXAMPLE
 
-**** xampp-uninstall
-     Remove a xampp instance from the default directory =/opt/lampp/=
+** Running Bitnami
+   This will run apache and sql etc. To do any db operation be sure
+   that it is running.
+   #+BEGIN_EXAMPLE
+   make bmw-run
+   #+END_EXAMPLE
 
-**** xampp-run
-     Start a xampp instance.
+   This kills (a bit blindly) anything that resembles bitnami if it
+   fails to halt gracefully.
+   #+BEGIN_EXAMPLE
+   make bmw-kill
+   #+END_EXAMPLE
 
-**** xampp-run
-     Kill a running xampp instance.
+** Mysql
+   To get some information about what will happen if you load stuff in
+   the library run
+   #+BEGIN_EXAMPLE
+   make mysql-dump-info
+   #+END_EXAMPLE
+
+   To load stuff to the database (this will take care of installing
+   anything missing so ideally you just need to run this)
+   #+BEGIN_EXAMPLE
+   make mysql-dump
+   #+END_EXAMPLE
