@@ -53,18 +53,28 @@ bmw-uninstall: bmw-kill
 mysql-shell: $(MYSQL) bmw-run
 	$(MYSQL_CMD)
 
+# This was too expensive and trivial to be run every time. Just be sure to run it once
+$(DRAFTS_DIR)/dumps_line_count: $(WIKIPEDIA_DUMPS)
+	wc -l $(WIKIPEDIA_DUMPS) | tail -1 | awk '{print $$1}' > $@
 
-DUMP_LINES:=$(shell wc -l $(WIKIPEDIA_DUMPS) | tail -1 | awk '{print $$1}')
-mysql-dump-info:
+DUMP_LINES=$(shell cat $(DRAFTS_DIR)/dumps_line_count)
+mysql-dump-info: $(DRAFTS_DIR)/dumps_line_count
 	@echo "Files to be imported:"
 	$(foreach var, $(WIKIPEDIA_DUMPS), @echo "$(shell ls -lh $(var) | awk '{print $$5,$$9}')")
 	@echo "Total lines to be imported: $(DUMP_LINES)"
 
 # XXX: the dumps do not drop tables before adding themselves so have that in mind.
-mysql-load: $(WIKIPEDIA_DUMPS) $(MYSQL) bmw-run mysql-clear mysql-dump-info
+DEBUG_INTERVAL=50
+mysql-load: $(WIKIPEDIA_DUMPS) $(MYSQL) bmw-run mysql-clear mysql-dump-info $(DRAFTS_DIR)/dumps_line_count
 	@echo "Loading data to mysql..."
 	@echo "Line from total, line in file, last command time, total time, filename"
-	awk  'BEGIN{ot=systime(); i=0}{ct=systime(); printf " %d/$(DUMP_LINES), %ds, %ds, %s\n", NR, ct-pt, ct-ot, FILENAME ; pt=ct; print | "$(MYSQL_CMD)"}' $(WIKIPEDIA_DUMPS)
+	awk  'BEGIN{ot=systime(); i=0}{if (NR%$(DEBUG_INTERVAL) == 0) {ct=systime(); printf " %d/$(DUMP_LINES) %ds %ds %s\n", NR, ct-pt, ct-ot, FILENAME ; pt=ct;} print | "$(MYSQL_CMD)"}' $(WIKIPEDIA_DUMPS)
 
 mysql-clear: bmw-run
 	$(DATA_DIR)/sql-clear.sh $(BMW_MYSQL_USER) $(BMW_MYSQL_PASS) $(BMW_MYSQL_DB) $(MYSQL)
+
+
+mysql-load-php: wikipedia-dump-xml
+	$(FILESYSTEM_ROOT)/php/bin/php $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/maintenance/importDump.php \
+		--conf $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php \
+		$(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml $(BMW_MYSQL_DB)

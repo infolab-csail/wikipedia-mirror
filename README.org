@@ -47,3 +47,5 @@
    #+BEGIN_EXAMPLE
    make mysql-dump
    #+END_EXAMPLE
+
+   NOTE: if you happen to be dealing with a large file
