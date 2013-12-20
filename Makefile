@@ -135,7 +135,7 @@ $(DRAFTS_DIR)/bz-%.bz2: | $(DRAFTS_DIR)
 .SECONDEXPANSION :
 $(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/bz-$$*.bz2
 	mkdir $@
-	cd $@ && bzip2 -dv $(DRAFTS_DIR)/bz-$*.bz2
+	cd $@ && bzcat -dv $(DRAFTS_DIR)/bz-$*.bz2 > $*
 
 %-bz-clean:
 	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/bz-$*.bz2

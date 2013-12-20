@@ -40,14 +40,14 @@ $(TOOLS_DIR)/mwdumper.jar: | $(TOOLS_DIR)
 	mvn package
 	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
 
-# MWDUMPER_JAR=$(TOOLS_DIR)/mwdumper.jar
+MWDUMPER_JAR=$(TOOLS_DIR)/mwdumper.jar
 # MWDUMPER_ARGS=-cp /afs/csail.mit.edu/u/c/cperivol/.m2/repository/xerces/xercesImpl/2.11.0/xercesImpl-2.11.0.jar
 
 # A fixed version that should work
 mwdumper.fixed.jar-raw-url=http://download.wikimedia.org/tools/mwdumper.jar
 RAW_PROJECTS=mwdumper.fixed.jar
 mwdumper-fix: mwdumper.fixed.jar
-MWDUMPER_JAR=$(DRAFTS_DIR)/raw-mwdumper.fixed.jar
+# MWDUMPER_JAR=$(DRAFTS_DIR)/raw-mwdumper.fixed.jar
 
 WIKIPEDIA_DUMPS += $(DRAFTS_DIR)/wikipedia_dump.sql
 full-sql-dump: $(DRAFTS_DIR)/wikipedia_dump.sql
