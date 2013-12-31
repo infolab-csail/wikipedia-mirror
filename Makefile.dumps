@@ -60,5 +60,6 @@ $(DRAFTS_DIR)/wikipedia_dump.sql: wikipedia-dump $(MWDUMPER_JAR)
 utf-fix: $(DATA_DIR)/utf-fixer $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml
 	$(DATA_DIR)/utf-fixer  $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml
 
+compile-utf-fix: $(DATA_DIR)/utf-fixer
 $(DATA_DIR)/utf-fixer: $(DATA_DIR)/utf8thread.c
 	gcc $^ -g -D_FILE_OFFSET_BITS=64 -Wall -pthread -o $@

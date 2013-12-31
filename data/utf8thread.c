@@ -7,65 +7,79 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <semaphore.h>
 #include <unistd.h>
 #include <unistd.h>
+
+sem_t stdio_mutex;
+
+#define PRINT(args...) do {sem_wait(&stdio_mutex);	\
+	printf(args);					\
+	fflush(stdout);					\
+	sem_post(&stdio_mutex);				\
+    } while(0)
+
+/* #define DEBUG(args...)		PRINT(args) */
+#define DEBUG(...)
 
 #define DEFAULT_CHAR ' '
 #define WORKERS 8
+#define MESSAGE_DENSITY 1000000
 
 typedef unsigned long long u64;
 
-#define UTF_LEN(x) (((x) & 0xfc) == 0xfc ? 6 :		\
-		    ((x) & 0xf8) == 0xf8 ? 5 :		\
-		    ((x) & 0xf0) == 0xf0 ? 4 :		\
-		    ((x) & 0xe0) == 0xe0 ? 3 :		\
-		    ((x) & 0xc0) == 0xc0 ? 2 :		\
-		    ((x) & 0x80) == 0x80 ? 1 :		\
-		    0)
+#define UTF_LC(l) (0xff >> (8 - (l)))
+#define UTF_CHECK(l, c) (((UTF_LC(l) & c) == UTF_LC(l)) && 0 == (c & (1 << (7-(l)))))
 
+#define UTF_LEN(x) (UTF_CHECK(6, x) ? 6 :	\
+		    UTF_CHECK(5, x) ? 5 :	\
+		    UTF_CHECK(4, x) ? 4 :	\
+		    UTF_CHECK(3, x) ? 3 :	\
+		    UTF_CHECK(2, x) ? 2 : -1)
 
 struct crange {
     u64 start, end;
 };
 
-
+/* Get return the next character after the last correct one. */
 inline u64 valid_utf8(u64 c)
 {
     char i;
+    if ((*(char*)c & 0x80) == 0)
+	return c+1;
+
     for (i=UTF_LEN(*(char*)c); i>0; i--) {
 	c++;
-	if (i != UTF_LEN(*(char*)c))
+	if (!UTF_CHECK(1, *(char*)c)) {
 	    return (u64)NULL;
+	}
     }
 
-    return c;
+    return i<0 ? 0 : c+1;
 }
 
 
 void* fix_range(void* _r)
 {
     struct crange* r = _r;
-    u64 tmp;
-    unsigned count = 0;
+    u64 tmp, id = r->start;
+    long long unsigned count = 0;
 
     while ((u64)r->start < (u64)r->end) {
-	count++;
+	if (count++ % MESSAGE_DENSITY == 0)
+	    printf ("[worker: 0x%016llx] Done with %lluK.\n", id, count%1024);
+
 	if (!(tmp = valid_utf8(r->start))){
+	    PRINT("Invalid char 0x%x (next: 0x%x)\n",
+		  *(char*)r->start, *(char*)(r->start+1));
 	    *((char*)r->start) = DEFAULT_CHAR;
 	    r->start++;
-	} else
+	} else {
 	    r->start = tmp;
+	}
     }
 
     return NULL;
-}
-
-void access_test(u64 p, u64 sz)
-{
-    u64 i;
-    char tmp;
-    for (i=0; i<sz; i++)
-	tmp = *(char*)(p+i);
 }
 
 void run(u64 p, u64 sz)
@@ -75,8 +89,6 @@ void run(u64 p, u64 sz)
     pthread_t workers[WORKERS];
     struct crange rngs[WORKERS];
 
-    /* access_test(p,sz); */
-
     wsize = sz/WORKERS + 1;
     printf("Base address: 0x%016llx, step size: 0x%016llx\n", p, wsize);
 
@@ -84,15 +96,17 @@ void run(u64 p, u64 sz)
 	rngs[i].start = p + wsize*i;
 	rngs[i].end = p + wsize*i + wsize;
 
-	printf("Spawning worker %d on range [0x%016llx, 0x%016llx)\n", i, rngs[i].start, rngs[i].end);
+	PRINT("Spawning worker %d on range [0x%016llx, 0x%016llx), %llu bytes...", i, rngs[i].start, rngs[i].end, wsize);
 	if ((n = pthread_create(workers+i, NULL, fix_range, (void*)(rngs+i)))) {
+	    PRINT("FAIL\n");
 	    perror("worker");
 	    return;
 	}
+	PRINT("OK\n");
     }
     for (i=0; i<WORKERS; i++) {
 	pthread_join(workers[i], NULL);
-	printf("Worker %d went through %lld bytes.\n", i, (u64)rngs[i].end - (u64)rngs[i].start);
+	PRINT("Worker %d went through %llu bytes.\n", i, (u64)rngs[i].end - (u64)rngs[i].start);
     }
 }
 
@@ -102,6 +116,8 @@ int main(int argc, char *argv[])
     int fd;
     long long int sz, p;
     struct stat buf;
+
+    sem_init(&stdio_mutex, 0 /* Shared. Usually ignored */ , 1);
 
     fd = open(argv[1], O_RDWR, 0x0666);
     if (fd == -1) {
@@ -131,6 +147,8 @@ int main(int argc, char *argv[])
 	perror ("munmap");
 	return 1;
     }
+
+    sem_destroy(&stdio_mutex);
 
     return 0;
 }
