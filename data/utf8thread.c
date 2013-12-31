@@ -28,8 +28,9 @@ sem_t stdio_mutex;
 
 typedef unsigned long long u64;
 
-#define UTF_LC(l) (0xff >> (8 - (l)))
-#define UTF_CHECK(l, c) (((UTF_LC(l) & c) == UTF_LC(l)) && 0 == (c & (1 << (7-(l)))))
+#define UTF_LC(l) ((0xff >> (8 - (l))) << (8 - (l)))
+#define UTF_CHECK(l, c) (((UTF_LC(l) & (c)) == UTF_LC(l)) && (0 == ((c) & (1 << (7-(l))))))
+
 
 #define UTF_LEN(x) (UTF_CHECK(6, x) ? 6 :	\
 		    UTF_CHECK(5, x) ? 5 :	\
@@ -48,7 +49,7 @@ inline u64 valid_utf8(u64 c)
     if ((*(char*)c & 0x80) == 0)
 	return c+1;
 
-    for (i=UTF_LEN(*(char*)c); i>0; i--) {
+    for (i=UTF_LEN(*(char*)c)-1; i>0; i--) {
 	c++;
 	if (!UTF_CHECK(1, *(char*)c)) {
 	    return (u64)NULL;
