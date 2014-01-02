@@ -54,8 +54,8 @@ full-sql-dump: $(DRAFTS_DIR)/wikipedia_dump.sql
 full-sql-dump-clean:
 	rm -rf $(DRAFTS_DIR)/wikipedia_dump.sql
 
-$(DRAFTS_DIR)/wikipedia_dump.sql: wikipedia-dump $(MWDUMPER_JAR)
-	java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=sql:1.5 $(DRAFTS_DIR)/raw-wikipedia-dump.xml.bz2 > $(DRAFTS_DIR)/wikipedia_dump.sql
+$(DRAFTS_DIR)/wikipedia_dump.sql: $(MWDUMPER_JAR) wikipedia-dump.xml
+	java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=sql:1.5 $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml > $(DRAFTS_DIR)/wikipedia_dump.sql
 
 utf-fix: $(DATA_DIR)/utf-fixer $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml
 	$(DATA_DIR)/utf-fixer  $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml
@@ -63,3 +63,5 @@ utf-fix: $(DATA_DIR)/utf-fixer $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-du
 compile-utf-fix: $(DATA_DIR)/utf-fixer
 $(DATA_DIR)/utf-fixer: $(DATA_DIR)/utf8thread.c
 	gcc $^ -O3 -g -D_FILE_OFFSET_BITS=64 -Wall -pthread -o $@
+
+include Makefile.smartdumps
