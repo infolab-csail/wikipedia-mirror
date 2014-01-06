@@ -1,6 +1,8 @@
 # This takes care of providing targets for overhead stuff like
 # creating directories, pulling repositories, kickstarting a new
-# server if you have a running one available etc. Much of the code in here was taken from
+# server if you have a running one available etc. Much of the code in
+# here was taken from
+#
 # http://github.com/fakedrake/xilinx-zynq-bootstrap
 #
 # This also includes the rest of the makefiles.
