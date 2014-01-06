@@ -1,5 +1,7 @@
-# This is all the operational stuff about the wiki. Dumps are
-# retrieved from Makefile.dumps
+############################ OBSOLETE ################################
+# This is all obsolete and handled by bitnami. It is the operational
+# stuff about the wiki. Dumps are retrieved from Makefile.dumps.
+#######################################################################
 
 ###### WikiMedia vanilla build. ######
 # Below is a wikimedia build that applies if you use a server stack
