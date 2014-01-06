@@ -24,6 +24,8 @@ RAW_PROJECTS += bitnami-mediawiki.run
 
 $(BMW_TARGETS): bmw-install
 
+$(MYSQL): bmw-install
+
 bmw-install : bmw-kill bitnami-mediawiki.run | $(FILESYSTEM_ROOT) $(DRAFTS_DIR)
 	chmod a+x $(DRAFTS_DIR)/raw-bitnami-mediawiki.run
 	cd $(FILESYSTEM_ROOT) && \
