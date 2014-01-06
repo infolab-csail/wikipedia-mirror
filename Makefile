@@ -1,3 +1,8 @@
+# This takes care of providing targets for overhead stuff like
+# creating directories, pulling repositories, kickstarting a new
+# server if you have a running one available etc. Much of the code in here was taken from
+# http://github.com/fakedrake/xilinx-zynq-bootstrap
+
 MAKETHREADS=4
 MAKE=make -j$(MAKETHREADS)
 RSYNC=rsync -avz
@@ -85,7 +90,14 @@ show-projects:
 	@echo "Bzip projects: $(BZ_PROJECTS)"
 	@echo "Gzip projects: $(GZ_PROJECTS)"
 
-# Have repositories
+# Generate targets for pulling stuff from the interwebnets. I will
+# show you how to use those with examples. Repos and extracted code
+# goes into SOURCES_DIR
+
+## GIT
+# <prj-name>-git-repo = <git repo url>
+# GIT_PROJECTS += <prj-name>
+# <prj-name>-build: <prj-name>
 .SECONDEXPANSION :
 $(GIT_PROJECTS) : $(SOURCES_DIR)/$$@-git
 
@@ -105,7 +117,14 @@ $(SOURCES_DIR)/%-git : force
 %-git-distclean:
 	$(call remote-maybe, cd $(SOURCES_DIR)/$*-git && $(MAKE) distclean)
 
-# Tar archives
+## Tar archives
+# <prj-name>-tar-url = <tar url>
+# TAR_PROJECTS += <prj-name>
+# <prj-name>-build: <prj-name>
+
+## The project has never existed:
+# $ make <prj-name>-tar-clean
+
 .SECONDEXPANSION :
 $(TAR_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-tar
 
@@ -123,7 +142,14 @@ $(SOURCES_DIR)/%-tar : | $(DRAFTS_DIR)/$$*.tar.gz
 	rm -rf $(SOURCES_DIR)/$*-tar $(DRAFTS_DIR)/$*.tar.gz
 
 
-# Bz2 archives
+## Bz2 archives
+# <prj-name>-bz-url = <tar url>
+# BZ_PROJECTS += <prj-name>
+# <prj-name>-build: <prj-name>
+
+## The project has never existed:
+# $ make <prj-name>-bz-clean
+
 .SECONDEXPANSION :
 $(BZ_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-bz
 
@@ -140,7 +166,13 @@ $(SOURCES_DIR)/%-bz : | $(DRAFTS_DIR)/bz-$$*.bz2
 %-bz-clean:
 	rm -rf $(SOURCES_DIR)/$*-bz $(DRAFTS_DIR)/bz-$*.bz2
 
-# Gz archives
+## GZ archives
+# <prj-name>-gz-url = <gz url>
+# GZ_PROJECTS += <prj-name>
+# <prj-name>-build: <prj-name>
+
+## The project has never existed:
+# $ make <prj-name>-gz-clean
 .SECONDEXPANSION :
 $(GZ_PROJECTS) :  $(SOURCES_DIR) $(SOURCES_DIR)/$$@-gz
 
@@ -158,7 +190,14 @@ $(SOURCES_DIR)/%-gz : | $(DRAFTS_DIR)/gz-$$*.gz
 	rm -rf $(SOURCES_DIR)/$*-gz $(DRAFTS_DIR)/gz-$*.gz
 
 
-# Raw projects are projects that do not need to be extracted in any way.
+## Raw binaries
+# <prj-name>-raw-url = <binary url>
+# RAW_PROJECTS += <prj-name>
+# <prj-name>-build: <prj-name>
+
+# Raw projects are projects that do not need to be extracted in any
+# way.
+# Note: $(DRAFTS_DIR)/raw-<prj-name> is the name of the local binary file.
 $(RAW_PROJECTS) :  $(DRAFTS_DIR)/raw-$$@
 
 $(DRAFTS_DIR)/raw-% : | $(DRAFTS_DIR)
@@ -172,6 +211,9 @@ $(DRAFTS_DIR)/raw-% : | $(DRAFTS_DIR)
 # dependencies.
 #
 # I will just do lazies locally for no particular reasons
+
+# Running <target>-lazy will actually run <target>-build
+
 .SECONDEXPANSION:
 $(LAZY_DIR)/%: $(LAZY_DIR) $$*-build
 	touch $@
