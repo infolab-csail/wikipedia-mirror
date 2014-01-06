@@ -1,3 +1,29 @@
+# This has targets that handle dumps. Most of it is obsolete but we
+# actually need the mwdumper.
+
+## MWDumper: make .bz -> .sql files
+# You will need jde and jre. For more info see here:
+# http://www.mediawiki.org/wiki/Mwdumper
+mwdumper-git-repo=https://gerrit.wikimedia.org/r/p/mediawiki/tools/mwdumper.git
+GIT_PROJECTS += mwdumper
+MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
+
+$(TOOLS_DIR)/mwdumper.jar: mwdumper | $(TOOLS_DIR)
+	cd $(SOURCES_DIR)/mwdumper-git/ && \
+	mvn package
+	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
+
+MWDUMPER_JAR=$(TOOLS_DIR)/mwdumper.jar
+
+include Makefile.smartdumps
+
+############################ OBSOLETE ################################
+# Except for the part where the wikipedia xml is fed to mwdumper to
+# produce sql the rest of this works. However it is a bad idea to try
+# to handle a monolithic dump of wikipedia, especially when it is
+# provided in chunks. See Makefile.smartdumps.
+######################################################################
+
 ## Wikipedia templates
 WIKIPEDIA_TEMPLATELINKS_URL=http://dumps.wikimedia.org/enwiki/latest/enwiki-latest-templatelinks.sql.gz
 wikipedia-templatelinks.sql-gz-url=$(WIKIPEDIA_TEMPLATELINKS_URL)
@@ -27,20 +53,8 @@ RAW_PROJECTS += wikipedia-dump.xml.bz2
 wikipedia-dump : $(DRAFTS_DIR)/raw-wikipedia-dump.xml.bz2
 	@echo "Getting the raw dump."
 
-## MWDumper
-# You will need jde and jre. For more info see here:
-# http://www.mediawiki.org/wiki/Mwdumper
-mwdumper-git-repo=https://gerrit.wikimedia.org/r/p/mediawiki/tools/mwdumper.git
-GIT_PROJECTS += mwdumper
-MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
 
-# XXX: I will assume it is cloned for this once
-$(TOOLS_DIR)/mwdumper.jar: | $(TOOLS_DIR)
-	cd $(SOURCES_DIR)/mwdumper-git/ && \
-	mvn package
-	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
 
-MWDUMPER_JAR=$(TOOLS_DIR)/mwdumper.jar
 # MWDUMPER_ARGS=-cp /afs/csail.mit.edu/u/c/cperivol/.m2/repository/xerces/xercesImpl/2.11.0/xercesImpl-2.11.0.jar
 
 # A fixed version that should work
@@ -63,5 +77,3 @@ utf-fix: $(DATA_DIR)/utf-fixer $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-du
 compile-utf-fix: $(DATA_DIR)/utf-fixer
 $(DATA_DIR)/utf-fixer: $(DATA_DIR)/utf8thread.c
 	gcc $^ -O3 -g -D_FILE_OFFSET_BITS=64 -Wall -pthread -o $@
-
-include Makefile.smartdumps
