@@ -1,6 +1,19 @@
 * Usage
   See the examples and work it out ;)
 
+** Building everything
+   Basically all you want to do is load some sql files into an sql
+   database and let the dependency tree find it's way into doing
+   that. So if all goes well you should be able to have everything set
+   up with:
+
+   #+BEGIN_EXAMPLE
+   make sql-load-parts ROOT_DIR=/new/path/of/proj/root
+   #+END_EXAMPLE
+
+   Make sure the media on which ROOT_DIR is mounted has more than 150G
+   and is preferably not a network fs or it will be slow as hell.
+
 ** Installing Bitnami MediaWiki
    Downloads and installs bitnami
    #+BEGIN_EXAMPLE
@@ -36,16 +49,8 @@
    #+END_EXAMPLE
 
 ** Mysql
-   To get some information about what will happen if you load stuff in
-   the library run
-   #+BEGIN_EXAMPLE
-   make mysql-dump-info
-   #+END_EXAMPLE
+   A mysql shell interface to the database
 
-   To load stuff to the database (this will take care of installing
-   anything missing so ideally you just need to run this)
    #+BEGIN_EXAMPLE
-   make mysql-dump
+   make mysql-shell
    #+END_EXAMPLE
-
-   NOTE: if you happen to be dealing with a large file
