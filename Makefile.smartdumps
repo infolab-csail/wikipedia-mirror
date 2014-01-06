@@ -12,7 +12,7 @@ enwiki-20131202-pages-articles11.xml-p001325001p001825000.bz2 \
 enwiki-20131202-pages-articles12.xml-p001825001p002425000.bz2 \
 enwiki-20131202-pages-articles13.xml-p002425002p003124997.bz2 \
 enwiki-20131202-pages-articles14.xml-p003125001p003924999.bz2 \
-enwiki-20131202-pages-articles15.xml-p003925001p004824998.bz2 \
+nenwiki-20131202-pages-articles15.xml-p003925001p004824998.bz2 \
 enwiki-20131202-pages-articles16.xml-p004825005p006024996.bz2 \
 enwiki-20131202-pages-articles17.xml-p006025001p007524997.bz2 \
 enwiki-20131202-pages-articles18.xml-p007525004p009225000.bz2 \
@@ -46,8 +46,8 @@ sql-dump-parts: $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
 
 .SECONDEXPANSION:
 $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded): $$(patsubst %.sql-loaded,%.sql,$$@) $(MYSQL) bmw-run
-	echo "loading: $@..."
-	echo $(@:.sql-loaded:.sql) | $(MYSQL) && \
+	echo "loading: $(@:.sql-loaded=.sql)..."
+	cat $(@:.sql-loaded=.sql) | $(MYSQL_CMD) && \
 	touch $@
 
 .PHONY:
