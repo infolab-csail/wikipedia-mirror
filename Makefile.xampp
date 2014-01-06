@@ -1,3 +1,9 @@
+############################ OBSOLETE ################################
+# XAMPP is UNMAINTAINED and replaced by bitnami. I keep this here as a
+# reference because it does interesting stuff with chroot jailing the
+# server in order to contain the system in a directory.
+######################################################################
+
 # All xampp related stuff are here.
 
 ## DOC
