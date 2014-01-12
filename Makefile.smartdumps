@@ -33,30 +33,34 @@ enwiki-20131202-pages-articles27.xml-p029625017p041249406.bz2
 WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20131202
 WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
 
+BZ_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.bz2)
+SQL_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
+
+.INTERMEDIATE: $(BZ_PARTS) $(SQL_PARTS)
+
 $(WP_PARTS_DIR):
 	mkdir -p $(WP_PARTS_DIR)
 
 # For each dump make targets for their corresponding files in
 # WP_PARTS_DIR
-$(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.bz2): $(WP_PARTS_DIR)
+$(BZ_PARTS): | $(WP_PARTS_DIR)
 	echo "Dowloading: $@..."
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@
 
-# For each page make a .sql file target.
+# For each page make a .sql file target. 
 .SECONDEXPANSION:
-$(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql): $$(patsubst %.sql,%.bz2,$$@) $(MWDUMPER_JAR)
+$(SQL_PARTS): $$(patsubst %.sql,%.bz2,$$@) | $(MWDUMPER_JAR)
 	echo "Exporting $^ to $@..."
 	java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=sql:1.5 $(@:.sql=.bz2) > $@
 
 # Create all sql dumps.
-.PHONY:
 sql-dump-parts: $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
 .SECONDEXPANSION:
-$(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded): $$(patsubst %.sql-loaded,%.sql,$$@) $(MYSQL) bmw-run
+$(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	echo "loading: $(@:.sql-loaded=.sql)..."
 	cat $(@:.sql-loaded=.sql) | $(MYSQL_CMD) && \
 	touch $@
