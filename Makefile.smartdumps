@@ -35,6 +35,7 @@ WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
 
 BZ_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.bz2)
 SQL_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
+LOADFLAGS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded)
 
 .INTERMEDIATE: $(BZ_PARTS) $(SQL_PARTS)
 
@@ -48,7 +49,7 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@
 
-# For each page make a .sql file target. 
+# For each page make a .sql file target.
 .SECONDEXPANSION:
 $(SQL_PARTS): $$(patsubst %.sql,%.bz2,$$@) | $(MWDUMPER_JAR)
 	echo "Exporting $^ to $@..."
@@ -60,11 +61,11 @@ sql-dump-parts: $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
 .SECONDEXPANSION:
-$(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
+$(LOADFLAGS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	echo "loading: $(@:.sql-loaded=.sql)..."
 	cat $(@:.sql-loaded=.sql) | $(MYSQL_CMD) && \
 	touch $@
 
 # Load all sql files.
 .PHONY:
-sql-load-parts: $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded)
+sql-load-parts: $(LOADFLAGS)
