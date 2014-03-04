@@ -35,7 +35,17 @@ WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
 
 BZ_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.bz2)
 SQL_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
-LOADFLAGS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded)
+XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.raw.xml)
+FIXED_XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.fix.xml)
+LOADED_MARKERS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded)
+
+file-exists = $(shell ls $(1) 2> /dev/null)
+cond-prereq = $(if $(call file-exists,$(1)),$(1),$(2))
+# 1:original pattern, 2:replace this one if exists, 3:fallback subst, 4:fname
+cond-subst = $(call cond-prereq,$(patsubst $(1),$(2),$(4)),$(patsubst $(1),$(3),$(4)))
+
+test-cond:
+	@echo $(call cond-subst,"%.bz","%.lo","%.sql","/home/fakedrake/minicom.bz")
 
 .INTERMEDIATE: $(BZ_PARTS) $(SQL_PARTS)
 
@@ -49,22 +59,43 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@
 
+DUMP_CMD = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=sql:1.5
 # For each page make a .sql file target.
+# If there is a fixed target it get prescedence.
+.ONESHELL:
 .SECONDEXPANSION:
-$(SQL_PARTS): $$(patsubst %.sql,%.bz2,$$@) | $(MWDUMPER_JAR)
+$(SQL_PARTS): $$(call cond-subst,"%.sql","%.fix.xml","%.bz2",$$@) | $(MWDUMPER_JAR)
 	echo "Exporting $^ to $@..."
-	java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=sql:1.5 $(@:.sql=.bz2) > $@
+	if ! $(DUMP_CMD) $< > $@; then \
+		$(MAKE) $(@:.sql=.fix.xml) && \
+		$(DUMP_CMD) $(@:.sql=.fix.xml) > $@; \
+	fi
 
 # Create all sql dumps.
-sql-dump-parts: $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
+sql-dump-parts: $(SQL_PARTS)
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
 .SECONDEXPANSION:
-$(LOADFLAGS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
-	echo "loading: $(@:.sql-loaded=.sql)..."
+$(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
+	echo "loagding: $(@:.sql-loaded=.sql)..."
 	cat $(@:.sql-loaded=.sql) | $(MYSQL_CMD) && \
 	touch $@
+
+
+## FIXING UTF8
+# It turns out part 20 has some utf8 problems. Here are some targets
+# to fix that.
+
+%.raw.xml: %.bz2
+	bzcat -dv $< > $@
+
+# Note: This destroys %.raw.xml
+%.fix.xml: %.raw.xml | $(DATA_DIR)/utf-fixer
+	$(DATA_DIR)/utf-fixer  $<
+	mv $< $@
+
+fix-%.bz2: $$(patsubst fix-%.bz2,%.fix.xml,$$@)
 
 # Load all sql files.
 .PHONY:

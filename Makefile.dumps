@@ -15,6 +15,10 @@ $(TOOLS_DIR)/mwdumper.jar: mwdumper | $(TOOLS_DIR)
 
 MWDUMPER_JAR=$(TOOLS_DIR)/mwdumper.jar
 
+compile-utf-fix: $(DATA_DIR)/utf-fixer
+$(DATA_DIR)/utf-fixer: $(DATA_DIR)/utf8thread.c
+	gcc $^ -O3 -g -D_FILE_OFFSET_BITS=64 -Wall -pthread -o $@
+
 include Makefile.smartdumps
 
 ############################ OBSOLETE ################################
@@ -73,7 +77,3 @@ $(DRAFTS_DIR)/wikipedia_dump.sql: $(MWDUMPER_JAR) wikipedia-dump.xml
 
 utf-fix: $(DATA_DIR)/utf-fixer $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml
 	$(DATA_DIR)/utf-fixer  $(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml
-
-compile-utf-fix: $(DATA_DIR)/utf-fixer
-$(DATA_DIR)/utf-fixer: $(DATA_DIR)/utf8thread.c
-	gcc $^ -O3 -g -D_FILE_OFFSET_BITS=64 -Wall -pthread -o $@

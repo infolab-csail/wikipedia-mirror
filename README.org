@@ -14,6 +14,28 @@
    Make sure the media on which ROOT_DIR is mounted has more than 150G
    and is preferably not a network fs or it will be slow as hell.
 
+*** Troubleshooting
+    Wikipedia is known to put some strangeness into utf that mwdumper
+    does not handle well. If the make process fails you can fix the
+    file that failed with
+
+    #+BEGIN_EXAMPLE
+    make fix-<file-that-failed>
+    #+END_EXAMPLE
+
+    which is an alias to
+
+    #+BEGIN_EXAMPLE
+    make <filename that failed without .bz2 extension>.fix.xml
+    #+END_EXAMPLE
+
+    This will extract the xml and replace all invalid characters with
+    spaces. Then rerun =sql-load-ports=
+
+    *Note:* you should still define =ROOT_DIR= when running make in
+    this way if you are building outside of the project dir.
+
+
 ** Installing Bitnami MediaWiki
    Downloads and installs bitnami
    #+BEGIN_EXAMPLE
@@ -49,7 +71,7 @@
    #+END_EXAMPLE
 
 ** Mysql
-   A mysql shell interface to the database
+   A mysql shell interface to the database.
 
    #+BEGIN_EXAMPLE
    make mysql-shell
