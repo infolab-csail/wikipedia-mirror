@@ -99,4 +99,4 @@ fix-%.bz2: $$(patsubst fix-%.bz2,%.fix.xml,$$@)
 
 # Load all sql files.
 .PHONY:
-sql-load-parts: $(LOADFLAGS)
+sql-load-parts: $(LOADED_MARKERS)
