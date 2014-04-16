@@ -16,7 +16,7 @@ enwiki-20131202-pages-articles11.xml-p001325001p001825000.bz2 \
 enwiki-20131202-pages-articles12.xml-p001825001p002425000.bz2 \
 enwiki-20131202-pages-articles13.xml-p002425002p003124997.bz2 \
 enwiki-20131202-pages-articles14.xml-p003125001p003924999.bz2 \
-nenwiki-20131202-pages-articles15.xml-p003925001p004824998.bz2 \
+enwiki-20131202-pages-articles15.xml-p003925001p004824998.bz2 \
 enwiki-20131202-pages-articles16.xml-p004825005p006024996.bz2 \
 enwiki-20131202-pages-articles17.xml-p006025001p007524997.bz2 \
 enwiki-20131202-pages-articles18.xml-p007525004p009225000.bz2 \
@@ -39,13 +39,20 @@ XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.raw.xml)
 FIXED_XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.fix.xml)
 LOADED_MARKERS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded)
 
-file-exists = $(shell ls $(1) 2> /dev/null)
-cond-prereq = $(if $(call file-exists,$(1)),$(1),$(2))
+file-exists = $(shell ls $(1))
+or-file = $(if $(call file-exists,$(1)), $(1), $(2))
 # 1:original pattern, 2:replace this one if exists, 3:fallback subst, 4:fname
-cond-subst = $(call cond-prereq,$(patsubst $(1),$(2),$(4)),$(patsubst $(1),$(3),$(4)))
+cond-subst = $(call or-file, $(patsubst $(1), $(2), $(4)), \
+			     $(patsubst $(1), $(3), $(4)))
 
 test-cond:
-	@echo $(call cond-subst,"%.bz","%.lo","%.sql","/home/fakedrake/minicom.bz")
+	mkdir /tmp/makefile-tests/
+	touch /tmp/makefile-tests/test.bz
+	@echo $(call or-file, "/tmp/makefile-tests/minicom.bz", "/tmp/makefile-tests/testies.bz") "= /tmp/makefile-tests/testies.bz"
+	@echo $(call or-file, "/tmp/makefile-tests/test.bz", "/tmp/makefile-tests/testies.bz") "= /tmp/makefile-tests/test.bz"
+	@echo $(call cond-subst,"%.bz","%.lo","%.sql","/tmp/makefile-tests/minicom.bz") "= /tmp/makefile-tests/minicom.sql"
+	@echo $(call cond-subst, "%.bz", "%.lo", "%.sql", "/tmp/makefile-tests/test.bz") "= /tmp/makefile-tests/test.lo"
+	rm -rf /tmp/makefile-tests/
 
 .INTERMEDIATE: $(BZ_PARTS) $(SQL_PARTS)
 
@@ -62,14 +69,8 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 DUMP_CMD = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=sql:1.5
 # For each page make a .sql file target.
 # If there is a fixed target it get prescedence.
-.ONESHELL:
-.SECONDEXPANSION:
-$(SQL_PARTS): $$(call cond-subst,"%.sql","%.fix.xml","%.bz2",$$@) | $(MWDUMPER_JAR)
-	echo "Exporting $^ to $@..."
-	if ! $(DUMP_CMD) $< > $@; then \
-		$(MAKE) $(@:.sql=.fix.xml) && \
-		$(DUMP_CMD) $(@:.sql=.fix.xml) > $@; \
-	fi
+%.sql: %.fix.xml | $(MWDUMPER_JAR)
+	$(DUMP_CMD) $< > $@; \
 
 # Create all sql dumps.
 sql-dump-parts: $(SQL_PARTS)
@@ -100,3 +101,6 @@ fix-%.bz2: $$(patsubst fix-%.bz2,%.fix.xml,$$@)
 # Load all sql files.
 .PHONY:
 sql-load-parts: $(LOADED_MARKERS)
+
+clean-sql-parts:
+	rm -rf $(SQL_PARTS)

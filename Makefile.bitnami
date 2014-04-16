@@ -6,6 +6,7 @@ BMW_MYSQL_USER=csail
 BMW_MYSQL_PASS=pass
 BMW_MYSQL_DB=bitnami_mediawiki
 BMW_MYSQL_ROOT_PASS=mysqlpass
+BMW_MYSQL_PORT=3307
 
 MYSQL=$(FILESYSTEM_ROOT)/mysql/bin/mysql
 MYSQL_CMD=$(MYSQL) -u $(BMW_MYSQL_USER) --password=$(BMW_MYSQL_PASS) $(BMW_MYSQL_DB)
@@ -35,7 +36,8 @@ bmw-install : bmw-kill bitnami-mediawiki.run | $(FILESYSTEM_ROOT) $(DRAFTS_DIR)
 		--mysql_database_password $(BMW_MYSQL_PASS) \
 		--mysql_database_name $(BMW_MYSQL_DB) \
 		--mysql_password $(BMW_MYSQL_ROOT_PASS) \
-		--mode unattended
+		--mode unattended \
+		--mysql_port $(BMW_MYSQL_PORT)
 
 bmw-run: $(BMWCTRL) bmw-kill
 	if [ -e "$$(ps aux | grep 'mysq[l]')" ]; then echo "already running mysql"; else $(BMWCTRL) start; fi
