@@ -21,14 +21,14 @@ enwiki-20131202-pages-articles16.xml-p004825005p006024996.bz2 \
 enwiki-20131202-pages-articles17.xml-p006025001p007524997.bz2 \
 enwiki-20131202-pages-articles18.xml-p007525004p009225000.bz2 \
 enwiki-20131202-pages-articles19.xml-p009225002p011124997.bz2 \
-enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2 \
 enwiki-20131202-pages-articles21.xml-p013325003p015724999.bz2 \
 enwiki-20131202-pages-articles22.xml-p015725013p018225000.bz2 \
 enwiki-20131202-pages-articles23.xml-p018225004p020925000.bz2 \
 enwiki-20131202-pages-articles24.xml-p020925002p023724999.bz2 \
 enwiki-20131202-pages-articles25.xml-p023725001p026624997.bz2 \
 enwiki-20131202-pages-articles26.xml-p026625004p029624976.bz2 \
-enwiki-20131202-pages-articles27.xml-p029625017p041249406.bz2
+enwiki-20131202-pages-articles27.xml-p029625017p041249406.bz2 \
+enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2
 
 WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20131202
 WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
