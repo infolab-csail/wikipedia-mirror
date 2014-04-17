@@ -7,13 +7,14 @@
 mwdumper-git-repo=https://gerrit.wikimedia.org/r/p/mediawiki/tools/mwdumper.git
 GIT_PROJECTS += mwdumper
 MWDUMPER_JAR_BUILT=$(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar
-
-$(TOOLS_DIR)/mwdumper.jar: mwdumper | $(TOOLS_DIR)
-	cd $(SOURCES_DIR)/mwdumper-git/ && \
-	mvn package
-	cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $(TOOLS_DIR)/mwdumper.jar
-
 MWDUMPER_JAR=$(TOOLS_DIR)/mwdumper.jar
+
+.ONESHELL:
+$(MWDUMPER_JAR): mwdumper | $(TOOLS_DIR)
+	if [ ! -f $@ ]; then \
+		cd $(SOURCES_DIR)/mwdumper-git/ && mvn package; \
+		cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $@; \
+	fi
 
 compile-utf-fix: $(DATA_DIR)/utf-fixer
 $(DATA_DIR)/utf-fixer: $(DATA_DIR)/utf8thread.c
