@@ -1,32 +1,45 @@
 #!/bin/bash
 #
-# Dont really parse it, just do some nassty tricks to make a subset of
-# the xml that makes sense
+# Simply removing specific articles fixes the xerces error with
+# UTF8. If the articles are alone the error goes away
+# aswell. Extremely weird but that's life. Fortunately the article is
+# just a stub about some toad (Cranopsis bocourti)
+#
+# xml-parse.sh ORIGINAL_XML TITLE_OF_ARTICLE_TO_REMOVE [inplace]
+#
+# if `inplace` is there the c program will be used to cover the article
+# with spaces. This is much faster. Should be anyway. Otherwise the
+# page is just ommited and the result is dumped in stdout. Helping
+# messages are dumped in stderr After this you can run:
+#
+# java -jar tools/mwdumper.jar RESULTING_XML --format=sql:1.5 > SQL_DUMP
 
-#!/bin/sh
+if [[ $# -lt 2 ]]; then
+    echo "xml-parse.sh ORIGINAL_XML TITLE_OF_ARTICLE_TO_REMOVE [inplace]" 1>&2
+    exit 0
+fi
 
-# ORIGINAL_XML=/scratch/cperivol/wikipedia-mirror/drafts/wikipedia-parts/enwiki-20131202-pages-articles20.xml-p011125004p013324998.fix.xml
-ORIGINAL_XML=/tmp/123.xml
+PROJECT_ROOT=/scratch/cperivol/wikipedia-mirror
+PAGE_REMOVER=$PROJECT_ROOT/scratch/cperivol/wikipedia-mirror/data/page_remover
+ORIGINAL_XML=$1
+# ORIGINAL_XML=$PROJECT_ROOT/drafts/wikipedia-parts/enwiki-20131202-pages-articles20.xml-p011125004p013324998.fix.xml
+# ORIGINAL_XML=/tmp/123.xml
+
 
 function file_range {
-    output_arg=""
-    if [[ $# -gt 3 ]]; then
-	output_arg="of=$4"
-    fi
-
     file=$1
     start=$2
     len=$3
 
     case $len in
-	"end") dd ibs=1 if=$file skip=$start $output_arg; return 0;;
-	"start") dd ibs=1 if=$file count=$start $output_arg; return 0;;
+	"end") dd ibs=1 if=$file skip=$start; return 0;;
+	"start") dd ibs=1 if=$file count=$start; return 0;;
 	"") echo "You need to tell me <filename> <byte start> <length|'start'|'end'>" 1>&2; return 1;;
     esac
 
     if [[ $len -gt 0 ]]; then
 	# Dump to stdout
-	dd ibs=1 if=$file skip=$start count=$len $output_arg
+	dd ibs=1 if=$file skip=$start count=$len
     else
 	skip=$(($start + ($len)))
 	len=$((- ($len)))
@@ -36,7 +49,7 @@ function file_range {
 	fi
 
 	# Dump to stdout
-        dd ibs=1 if=$file skip=$skip count=$len $output_arg
+        dd ibs=1 if=$file skip=$skip count=$len
     fi
 }
 
@@ -67,7 +80,7 @@ function xml_page {
 function neg_xml_page {
     term="<title>$1</title>"
     title_offset=$(grep -b -o -F "$term" -m 1 $ORIGINAL_XML | grep -o "[0-9]*" -m 1 | head -1)
-    echo -e "\toutput file: $2" 1>&2
+    echo -e "\nMethod: $2" 1>&2
     echo -e "\tsearch term: $term" 1>&2
     echo -e "\ttitle offset: $title_offset" 1>&2
 
@@ -89,8 +102,14 @@ function neg_xml_page {
     page_end=$(dd if=$ORIGINAL_XML skip=$title_offset ibs=1 | grep -b -F "</page>" -m 1 | grep -o "[0-9]*")+7
     page_start=$(($title_offset-$bytes_from_title))
 
-    file_range $ORIGINAL_XML $page_start start $2
-    file_range $ORIGINAL_XML $page_end end $2
+    if [[ "$2" = "inplace" ]]; then
+	echo -e "Using in place covering with $PAGE_REMOVER.." 1>&2
+	$PAGE_REMOVER $ORIGINAL_XML $page_start $page_end
+	return;
+    fi
+
+    file_range $ORIGINAL_XML $page_start start
+    file_range $ORIGINAL_XML $page_end end
 }
 
 # Put stdin betwinn mediawiki tags and into stdout
@@ -99,4 +118,4 @@ function mediawiki_xml {
 }
 
 # (for i; do xml_page "$i"; done) | mediawiki_xml
-# neg_xml_page $1
+neg_xml_page $2 $3

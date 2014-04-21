@@ -79,7 +79,7 @@ sql-dump-parts: $(SQL_PARTS)
 # file was loaded already in the db.
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
-	echo "loagding: $(@:.sql-loaded=.sql)..."
+	@echo "loading: $(@:.sql-loaded=.sql)..."
 	cat $(@:.sql-loaded=.sql) | $(MYSQL_CMD) && \
 	touch $@
 
