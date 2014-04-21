@@ -53,12 +53,13 @@ typedef struct context {
 context_t* context_init(char* fname, off_t off, size_t len)
 {
     context_t * ctx = (context_t*)malloc(sizeof(context_t));
+    off_t pa_off = off & ~(sysconf(_SC_PAGE_SIZE) - 1);
 
     sem_init(&ctx->stdio_mutex, 0 /* Shared. Usually ignored */ , 1);
 
     PRINT(ctx, "Opening %s at %lu (len: %lu)\n", fname, off, len);
 
-    ctx->off = off;
+    ctx->off = off-pa_off;
     ctx->fd = open(fname, O_RDWR, 0x0666);
     if (ctx->fd == -1) {
 	perror("open");
@@ -66,8 +67,8 @@ context_t* context_init(char* fname, off_t off, size_t len)
     }
 
     ctx->size = len;
-    ctx->data = mmap(0, len, PROT_READ | PROT_WRITE,
-		     MAP_SHARED, ctx->fd, 0);
+    ctx->data = mmap(0, len+ctx->off, PROT_READ | PROT_WRITE,
+		     MAP_SHARED, ctx->fd, pa_off);
     if (ctx->data == MAP_FAILED) {
 	perror ("mmap");
 	return NULL;
