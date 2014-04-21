@@ -5,8 +5,8 @@
 
 #!/bin/sh
 
-# ORIGINAL_XML=/scratch/cperivol/wikipedia-mirror/drafts/wikipedia-parts/enwiki-20131202-pages-articles20.xml-p011125004p013324998.fix.xml
-ORIGINAL_XML=/tmp/123.xml
+ORIGINAL_XML=/scratch/cperivol/wikipedia-mirror/drafts/wikipedia-parts/enwiki-20131202-pages-articles20.xml-p011125004p013324998.fix.xml
+# ORIGINAL_XML=/tmp/123.xml
 
 function file_range {
     file=$1
