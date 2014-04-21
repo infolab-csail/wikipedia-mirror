@@ -20,7 +20,7 @@ if [[ $# -lt 2 ]]; then
 fi
 
 PROJECT_ROOT=/scratch/cperivol/wikipedia-mirror
-PAGE_REMOVER=$PROJECT_ROOT/scratch/cperivol/wikipedia-mirror/data/page_remover
+PAGE_REMOVER=$PROJECT_ROOT/data/page_remover
 ORIGINAL_XML=$1
 # ORIGINAL_XML=$PROJECT_ROOT/drafts/wikipedia-parts/enwiki-20131202-pages-articles20.xml-p011125004p013324998.fix.xml
 # ORIGINAL_XML=/tmp/123.xml
@@ -97,14 +97,13 @@ function neg_xml_page {
     page_start=$(($title_offset - $to_page_start))
     page_end=$(($title_offset + $to_page_end))
 
-#    echo PROCESSING COUNT: $count
-    bytes_from_title=$(dd if=$ORIGINAL_XML count=$count skip=$(($title_offset-$count)) ibs=1 | tac | grep -b  -F "<page>" -m 1 | grep -o "[0-9]*")
-    page_end=$(dd if=$ORIGINAL_XML skip=$title_offset ibs=1 | grep -b -F "</page>" -m 1 | grep -o "[0-9]*")+7
-    page_start=$(($title_offset-$bytes_from_title))
+    echo -e "\tpage start: $page_start\n\tpage end: $page_end,\n\tbytes to copy: $(($(du -b $ORIGINAL_XML | awk '{print $1}') - $page_start + $page_end))" 1>&2
 
     if [[ "$2" = "inplace" ]]; then
 	echo -e "Using in place covering with $PAGE_REMOVER.." 1>&2
-	$PAGE_REMOVER $ORIGINAL_XML $page_start $page_end
+	cmd="$PAGE_REMOVER $ORIGINAL_XML $page_start $(($page_end-$page_start))"
+	echo "Running: $cmd"
+	$cmd
 	return;
     fi
 
@@ -118,4 +117,4 @@ function mediawiki_xml {
 }
 
 # (for i; do xml_page "$i"; done) | mediawiki_xml
-neg_xml_page $2 $3
+neg_xml_page "$2" "$3"
