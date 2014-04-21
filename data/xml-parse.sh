@@ -9,19 +9,24 @@
 ORIGINAL_XML=/tmp/123.xml
 
 function file_range {
+    output_arg=""
+    if [[ $# -gt 3 ]]; then
+	output_arg="of=$4"
+    fi
+
     file=$1
     start=$2
     len=$3
 
     case $len in
-	"end") dd ibs=1 if=$file skip=$start; return 0;;
-	"start") dd ibs=1 if=$file count=$start; return 0;;
+	"end") dd ibs=1 if=$file skip=$start $output_arg; return 0;;
+	"start") dd ibs=1 if=$file count=$start $output_arg; return 0;;
 	"") echo "You need to tell me <filename> <byte start> <length|'start'|'end'>" 1>&2; return 1;;
     esac
 
     if [[ $len -gt 0 ]]; then
 	# Dump to stdout
-	dd ibs=1 if=$file skip=$start count=$len;
+	dd ibs=1 if=$file skip=$start count=$len $output_arg
     else
 	skip=$(($start + ($len)))
 	len=$((- ($len)))
@@ -31,7 +36,7 @@ function file_range {
 	fi
 
 	# Dump to stdout
-        dd ibs=1 if=$file skip=$skip count=$len
+        dd ibs=1 if=$file skip=$skip count=$len $output_arg
     fi
 }
 
@@ -60,19 +65,19 @@ function xml_page {
 
 # Throw everything but the page in stdout
 function neg_xml_page {
-
-    term="<title>$@</title>"
+    term="<title>$1</title>"
     title_offset=$(grep -b -o -F "$term" -m 1 $ORIGINAL_XML | grep -o "[0-9]*" -m 1 | head -1)
-
+    echo -e "\toutput file: $2" 1>&2
+    echo -e "\tsearch term: $term" 1>&2
     echo -e "\ttitle offset: $title_offset" 1>&2
 
     if [ ! $title_offset ]; then
 	echo "Found '$title_offset' Grep-ing (grep -b -F \"$term\" -m 1 $ORIGINAL_XML | grep -o '[0-9]*')"
 	grep -b -o -F "$term" -m 1 $ORIGINAL_XML | grep -o "[0-9]*"
-	exit 0
+	return
     fi
 
-    to_page_start=$(($(file_range $ORIGINAL_XML $title_offset -1000 | tac |rev | grep -b -o -F "$(echo '<page>' | rev)" -m 1 | grep -o "[0-9]*" -m 1)+6))
+    to_page_start=$(($(file_range $ORIGINAL_XML $title_offset -1000 | tac -b | rev | grep -b -o -F "$(echo '<page>' | rev)" -m 1 | grep -o "[0-9]*" -m 1)+7))
     echo -e "\tto page start: $to_page_start" 1>&2
     to_page_end=$(($(file_range $ORIGINAL_XML $title_offset end | grep -o -b -F "</page>" -m 1 | grep -o "[0-9]*")+7))
     echo -e "\tto page end: $to_page_end" 1>&2
@@ -84,8 +89,8 @@ function neg_xml_page {
     page_end=$(dd if=$ORIGINAL_XML skip=$title_offset ibs=1 | grep -b -F "</page>" -m 1 | grep -o "[0-9]*")+7
     page_start=$(($title_offset-$bytes_from_title))
 
-    dd if=$ORIGINAL_XML count=$page_start ibs=1
-    dd if=$ORIGINAL_XML skip=$page_end ibs=1
+    file_range $ORIGINAL_XML $page_start start $2
+    file_range $ORIGINAL_XML $page_end end $2
 }
 
 # Put stdin betwinn mediawiki tags and into stdout
