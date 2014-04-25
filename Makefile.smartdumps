@@ -80,7 +80,10 @@ sql-dump-parts: $(SQL_PARTS)
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-	cat $(@:.sql-loaded=.sql) | $(MYSQL_CMD) && \
+	(echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;"; \
+		cat $(@:.sql-loaded=.sql); \
+		echo "SET FOREIGN_KEY_CHECKS = 1;COMMIT;SET AUTOCOMMIT = 1;"
+	) | $(MYSQL_CMD) && \
 	touch $@
 
 
