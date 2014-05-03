@@ -28,7 +28,7 @@ enwiki-20131202-pages-articles24.xml-p020925002p023724999.bz2 \
 enwiki-20131202-pages-articles25.xml-p023725001p026624997.bz2 \
 enwiki-20131202-pages-articles26.xml-p026625004p029624976.bz2 \
 enwiki-20131202-pages-articles27.xml-p029625017p041249406.bz2 \
-enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2
+# enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2
 
 WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20131202
 WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
@@ -82,7 +82,7 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
 	(echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;"; \
 		cat $(@:.sql-loaded=.sql); \
-		echo "SET FOREIGN_KEY_CHECKS = 1;COMMIT;SET AUTOCOMMIT = 1;"
+		echo "SET FOREIGN_KEY_CHECKS = 1;COMMIT;SET AUTOCOMMIT = 1;" \
 	) | $(MYSQL_CMD) && \
 	touch $@
 
