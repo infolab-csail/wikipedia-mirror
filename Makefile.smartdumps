@@ -28,7 +28,7 @@ enwiki-20131202-pages-articles24.xml-p020925002p023724999.bz2 \
 enwiki-20131202-pages-articles25.xml-p023725001p026624997.bz2 \
 enwiki-20131202-pages-articles26.xml-p026625004p029624976.bz2 \
 enwiki-20131202-pages-articles27.xml-p029625017p041249406.bz2 \
-# enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2
+enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2
 
 WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20131202
 WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
@@ -66,11 +66,18 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@
 
-DUMP_CMD = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=sql:1.5
+DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=xml
+DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS)  --format=sql:1.5
+DUMP_CMD = $(DUMP_CMD_sql)
+
+
 # For each page make a .sql file target.
 # If there is a fixed target it get prescedence.
 %.sql: %.fix.xml | $(MWDUMPER_JAR)
 	$(DUMP_CMD) $< > $@; \
+
+mwdumper-command-%:
+	@echo "$(DUMP_CMD_$*) IN_XML_FILE > OUT_$*_FILE "
 
 # Create all sql dumps.
 sql-dump-parts: $(SQL_PARTS)

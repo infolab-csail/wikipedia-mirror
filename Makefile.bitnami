@@ -100,3 +100,48 @@ mysql-load-php: wikipedia-dump-xml
 	$(FILESYSTEM_ROOT)/php/bin/php $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/maintenance/importDump.php \
 		--conf $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php \
 		$(SOURCES_DIR)/wikipedia-dump.xml-bz/wikipedia-dump.xml $(BMW_MYSQL_DB)
+
+
+
+MW_EXTENSIONS_DIR = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/extensions
+MW_LOCALCONF = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php
+
+$(DRAFTS_DIR)/%-mwext.tar.gz:
+	@echo "Downloading mw-$*-url=$(mw-$*-url)"
+	wget $(mw-$*-url) -O $@
+
+$(MW_EXTENSIONS_DIR)/%/: $(DRAFTS_DIR)/%-mwext.tar.gz
+	@echo "Installing $*"
+	mkdir $@
+	cp $(MW_LOCALCONF) $(MW_LOCALCONF).$$(date +%s)_bak.$*
+	tar -xzf $< -C $@
+
+# Note that this is not to be used too much. You are not add/removing
+.PHONY:
+mw-%-disable:
+	cat $(MW_LOCALCONF) | awk "BEGIN{valid=1} /# $*/{valid=0} {if (valid) print} /# \/$*/{valid=1}" > $(MW_LOCALCONF)
+
+# MediaWiki Extensions
+MW_EXTENSIONS += scribunto
+mw-scribunto-url =https://codeload.github.com/wikimedia/mediawiki-extensions-Scribunto/legacy.tar.gz/REL1_19
+scribunto:
+	if ! grep -F "# scribunto" $(MW_LOCALCONF); then \
+		scribunto_php="$$(cd $(MW_EXTENSIONS_DIR)/../ && ls extensions/scribunto/*/Scribunto.php)"; \
+		echo "" >> $(MW_LOCALCONF); \
+		echo '# scribunto' >> $(MW_LOCALCONF); \
+		echo 'require_once "$$IP/$$scribunto_php";' >> $(MW_LOCALCONF); \
+		echo '$wgScribuntoDefaultEngine = "luastandalone";' >> $(MW_LOCALCONF); \
+		echo '# /scribunto' >> $(MW_LOCALCONF); \
+	fi
+
+.PHONY:
+mw-extensions: $(MW_EXTENSIONS)
+
+.PHONY:
+.SECONDEXPANSION:
+$(MW_EXTENSIONS):  $(MW_EXTENSIONS_DIR)/$$@/
+
+.PHONY:
+.SECONDEXPANSION:
+$(MW_EXTENSIONS:%=%-clean): $$(@:%-clean=mw-%-disable)
+	rm -rf $(DRAFTS_DIR)/$(@:%-clean=%)-mwext.tar.gz $(MW_EXTENSIONS_DIR)/$(@:%-clean=%)/
