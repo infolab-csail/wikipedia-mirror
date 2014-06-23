@@ -104,14 +104,20 @@ mysql-load-php: wikipedia-dump-xml
 
 
 MW_EXTENSIONS_DIR = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/extensions
+
+# I learned the hard way that to debug this code the best way is to
+# not use your production LocalSettings.php. Use a test file
+# instead. 'It's a simple line of shell code' still counts as a fix...
+
+# MW_LOCALCONF = ./test
 MW_LOCALCONF = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php
 
 $(DRAFTS_DIR)/%-mwext.tar.gz:
-	@echo "Downloading mw-$*-url=$(mw-$*-url)"
+	@echo "Downloading mediawiki extension mw-$*-url=$(mw-$*-url)"
 	wget $(mw-$*-url) -O $@
 
 $(MW_EXTENSIONS_DIR)/%/: $(DRAFTS_DIR)/%-mwext.tar.gz
-	@echo "Installing $*"
+	@echo "Installing mediawiki extension $*"
 	mkdir $@
 	cp $(MW_LOCALCONF) $(MW_LOCALCONF).$$(date +%s)_bak.$*
 	tar -xzf $< -C $@
@@ -119,29 +125,49 @@ $(MW_EXTENSIONS_DIR)/%/: $(DRAFTS_DIR)/%-mwext.tar.gz
 # Note that this is not to be used too much. You are not add/removing
 .PHONY:
 mw-%-disable:
+	@echo "Disabling mediawikie extensions $*"
 	cat $(MW_LOCALCONF) | awk "BEGIN{valid=1} /# $*/{valid=0} {if (valid) print} /# \/$*/{valid=1}" > $(MW_LOCALCONF)
 
-# MediaWiki Extensions
-MW_EXTENSIONS += scribunto
-mw-scribunto-url =https://codeload.github.com/wikimedia/mediawiki-extensions-Scribunto/legacy.tar.gz/REL1_19
-scribunto:
-	if ! grep -F "# scribunto" $(MW_LOCALCONF); then \
-		scribunto_php="$$(cd $(MW_EXTENSIONS_DIR)/../ && ls extensions/scribunto/*/Scribunto.php)"; \
-		echo "" >> $(MW_LOCALCONF); \
-		echo '# scribunto' >> $(MW_LOCALCONF); \
-		echo 'require_once "$$IP/$$scribunto_php";' >> $(MW_LOCALCONF); \
-		echo '$wgScribuntoDefaultEngine = "luastandalone";' >> $(MW_LOCALCONF); \
-		echo '# /scribunto' >> $(MW_LOCALCONF); \
+.PHONY:
+mw-%-enable:
+	@echo "Enabling mediawiki extension $*, config: $(mw-$*-config)"
+	if ! grep -F "# $*" $(MW_LOCALCONF); then \
+		file_php="$$(cd $(MW_EXTENSIONS_DIR)/../ && ls extensions/$*/*/$(mw-$*-php))"; \
+		echo '' >> $(MW_LOCALCONF); \
+		echo '# $*' >> $(MW_LOCALCONF); \
+		echo "require_once \"\$$IP/$$file_php\";" >> $(MW_LOCALCONF); \
+		echo $(mw-$*-config) >> $(MW_LOCALCONF); \
+		echo '# /$*' >> $(MW_LOCALCONF); \
 	fi
 
-.PHONY:
-mw-extensions: $(MW_EXTENSIONS)
+# MediaWiki Extensions
+
+# Scribunto ladies and gentlemen. Consider this an example on how to
+# add new extensions.
+MW_EXTENSIONS += scribunto
+mw-scribunto-url =https://codeload.github.com/wikimedia/mediawiki-extensions-Scribunto/legacy.tar.gz/REL1_19
+mw-scribunto-php = Scribunto.php
+# Make sure this is a string that can be directly passed to echo. I
+# dont surround it with quotes or anything.
+mw-scribunto-config = '$$wgScribuntoDefaultEngine = "luastandalone";'
+
+# Here I sould note that extensions that get shipped with mediawiki
+# (like this one) have one less directory layer so dont just rename
+# the preshipped directory and expect stuuff to work. Read the code in
+# this file and hack responsibly if you have to.
+MW_EXTENSIONS += parserfunctions
+mw-parserfunctions-url=https://codeload.github.com/wikimedia/mediawiki-extensions-ParserFunctions/legacy.tar.gz/REL1_19
+mw-parserfunctions-php=ParserFunctions.php
 
 .PHONY:
-.SECONDEXPANSION:
-$(MW_EXTENSIONS):  $(MW_EXTENSIONS_DIR)/$$@/
+mw-extensions: $(MW_EXTENSIONS:%=mw-%-enable)
 
 .PHONY:
-.SECONDEXPANSION:
-$(MW_EXTENSIONS:%=%-clean): $$(@:%-clean=mw-%-disable)
+mw-%-enable:  $(MW_EXTENSIONS_DIR)/%/
+
+.PHONY:
+mw-%-clean: mw-%-disable
 	rm -rf $(DRAFTS_DIR)/$(@:%-clean=%)-mwext.tar.gz $(MW_EXTENSIONS_DIR)/$(@:%-clean=%)/
+
+test:
+	echo "\$$PATH"
