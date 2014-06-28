@@ -81,6 +81,7 @@ $(DRAFTS_DIR)/dumps_line_count: $(WIKIPEDIA_DUMPS)
 
 # WARNING: OBSOLETE
 DUMP_LINES=$(shell cat $(DRAFTS_DIR)/dumps_line_count)
+.PHONY:
 mysql-dump-info: $(DRAFTS_DIR)/dumps_line_count
 	@echo "Files to be imported:"
 	$(foreach var, $(WIKIPEDIA_DUMPS), @echo "$(shell ls -lh $(var) | awk '{print $$5,$$9}')")
@@ -89,13 +90,14 @@ mysql-dump-info: $(DRAFTS_DIR)/dumps_line_count
 # WARNING: OBSOLETE
 # XXX: the dumps do not drop tables before adding themselves so have that in mind.
 DEBUG_INTERVAL=50
+.PHONY:
 mysql-load: $(WIKIPEDIA_DUMPS) $(MYSQL) bmw-run mysql-clear mysql-dump-info $(DRAFTS_DIR)/dumps_line_count
 	@echo "Loading data to mysql..."
 	@echo "Line from total, line in file, last command time, total time, filename"
 	awk  'BEGIN{ot=systime(); i=0}{if (NR%$(DEBUG_INTERVAL) == 0) {ct=systime(); printf " %d/$(DUMP_LINES) %ds %ds %s\n", NR, ct-pt, ct-ot, FILENAME ; pt=ct;} print | "$(MYSQL_CMD)"}' $(WIKIPEDIA_DUMPS)
 
 
-
+.PHONY:
 mysql-load-php: wikipedia-dump-xml
 	$(FILESYSTEM_ROOT)/php/bin/php $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/maintenance/importDump.php \
 		--conf $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php \
@@ -109,8 +111,11 @@ MW_EXTENSIONS_DIR = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/extensions
 # not use your production LocalSettings.php. Use a test file
 # instead. 'It's a simple line of shell code' still counts as a fix...
 
-# MW_LOCALCONF = ./test
-MW_LOCALCONF = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php
+MW_LOCALCONF = ./test
+# MW_LOCALCONF = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php
+
+$(MW_LOCALCONF):
+	touch $@
 
 $(DRAFTS_DIR)/%-mwext.tar.gz:
 	@echo "Downloading mediawiki extension mw-$*-url=$(mw-$*-url)"
@@ -119,18 +124,23 @@ $(DRAFTS_DIR)/%-mwext.tar.gz:
 $(MW_EXTENSIONS_DIR)/%/: $(DRAFTS_DIR)/%-mwext.tar.gz
 	@echo "Installing mediawiki extension $*"
 	mkdir $@
-	cp $(MW_LOCALCONF) $(MW_LOCALCONF).$$(date +%s)_bak.$*
 	tar -xzf $< -C $@
+
+.PHONY:
+mw-backup-localconf: $(MW_LOCALCONF)
+	@echo "Backup of localconf... To revert try something like"
+	@echo "\tcp $(MW_LOCALCONF).xxxxxx_bak $(MW_LOCALCONF)"
+	cp $(MW_LOCALCONF) $(MW_LOCALCONF).$$(date +%s)_bak
 
 # Note that this is not to be used too much. You are not add/removing
 .PHONY:
-mw-%-disable:
+mw-%-disable: mw-backup-localconf
 	@echo "Disabling mediawikie extensions $*"
 	cat $(MW_LOCALCONF) | awk "BEGIN{valid=1} /# $*/{valid=0} {if (valid) print} /# \/$*/{valid=1}" > $(MW_LOCALCONF)
 
 .PHONY:
-mw-%-enable:
-	@echo "Enabling mediawiki extension $*, config: $(mw-$*-config)"
+mw-%-enable: %-is-a-registered-extension mw-backup-localconf $(MW_EXTENSIONS_DIR)/%/ 
+	@echo "Enabling mediawiki extension $*"
 	if ! grep -F "# $*" $(MW_LOCALCONF); then \
 		file_php="$$(cd $(MW_EXTENSIONS_DIR)/../ && ls extensions/$*/*/$(mw-$*-php))"; \
 		echo '' >> $(MW_LOCALCONF); \
@@ -162,12 +172,15 @@ mw-parserfunctions-php=ParserFunctions.php
 .PHONY:
 mw-extensions: $(MW_EXTENSIONS:%=mw-%-enable)
 
+# A hack I personally find pretty cute to avoid registering
+# nonexistent extensions.
 .PHONY:
-mw-%-enable:  $(MW_EXTENSIONS_DIR)/%/
+$(MW_EXTENSIONS:%=%-is-a-registered-extension):
+	@echo "Your extension seems to be registered."
 
 .PHONY:
 mw-%-clean: mw-%-disable
 	rm -rf $(DRAFTS_DIR)/$(@:%-clean=%)-mwext.tar.gz $(MW_EXTENSIONS_DIR)/$(@:%-clean=%)/
 
-test:
-	echo "\$$PATH"
+mw-print-registered-extensions:
+	@echo "$(MW_EXTENSIONS)"
