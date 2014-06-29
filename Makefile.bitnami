@@ -111,10 +111,11 @@ MW_EXTENSIONS_DIR = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/extensions
 # not use your production LocalSettings.php. Use a test file
 # instead. 'It's a simple line of shell code' still counts as a fix...
 
-MW_LOCALCONF = ./test
-# MW_LOCALCONF = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php
+# MW_LOCALCONF = ./test
+MW_LOCALCONF = $(FILESYSTEM_ROOT)/apps/mediawiki/htdocs/LocalSettings.php
 
 $(MW_LOCALCONF):
+	@echo "Warning: I shouldn't have to create $(MY_LOCALCONF) unless it's for testing."
 	touch $@
 
 $(DRAFTS_DIR)/%-mwext.tar.gz:
@@ -136,7 +137,9 @@ mw-backup-localconf: $(MW_LOCALCONF)
 .PHONY:
 mw-%-disable: mw-backup-localconf
 	@echo "Disabling mediawikie extensions $*"
-	cat $(MW_LOCALCONF) | awk "BEGIN{valid=1} /# $*/{valid=0} {if (valid) print} /# \/$*/{valid=1}" > $(MW_LOCALCONF)
+	mkfifo /tmp/fifo
+	cat $(MW_LOCALCONF) | (awk "BEGIN{valid=1} /# $*/{valid=0} {if (valid) print} /# \/$*/{valid=1}" && echo 1 > /tmp/fifo) | (cat /tmp/fifo > /dev/null && (cat > $(MW_LOCALCONF)))
+	rm /tmp/fifo
 
 .PHONY:
 mw-%-enable: %-is-a-registered-extension mw-backup-localconf $(MW_EXTENSIONS_DIR)/%/ 
