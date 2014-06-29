@@ -153,24 +153,7 @@ mw-%-enable: %-is-a-registered-extension mw-backup-localconf $(MW_EXTENSIONS_DIR
 		echo '# /$*' >> $(MW_LOCALCONF); \
 	fi
 
-# MediaWiki Extensions
-
-# Scribunto ladies and gentlemen. Consider this an example on how to
-# add new extensions.
-MW_EXTENSIONS += scribunto
-mw-scribunto-url =https://codeload.github.com/wikimedia/mediawiki-extensions-Scribunto/legacy.tar.gz/REL1_19
-mw-scribunto-php = Scribunto.php
-# Make sure this is a string that can be directly passed to echo. I
-# dont surround it with quotes or anything.
-mw-scribunto-config = '$$wgScribuntoDefaultEngine = "luastandalone";'
-
-# Here I sould note that extensions that get shipped with mediawiki
-# (like this one) have one less directory layer so dont just rename
-# the preshipped directory and expect stuuff to work. Read the code in
-# this file and hack responsibly if you have to.
-MW_EXTENSIONS += parserfunctions
-mw-parserfunctions-url=https://codeload.github.com/wikimedia/mediawiki-extensions-ParserFunctions/legacy.tar.gz/REL1_19
-mw-parserfunctions-php=ParserFunctions.php
+include Makefile.mwextensions
 
 .PHONY:
 mw-extensions: $(MW_EXTENSIONS:%=mw-%-enable)
