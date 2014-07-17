@@ -1,6 +1,9 @@
 # This has targets that handle dumps. Most of it is obsolete but we
 # actually need the mwdumper.
 
+MVN=mvn -Duser.home="$(ROOT_DIR)/drafts"
+
+
 ## MWDumper: make .bz -> .sql files
 # You will need jde and jre. For more info see here:
 # http://www.mediawiki.org/wiki/Mwdumper
@@ -12,7 +15,7 @@ MWDUMPER_JAR=$(TOOLS_DIR)/mwdumper.jar
 .ONESHELL:
 $(MWDUMPER_JAR): mwdumper | $(TOOLS_DIR)
 	if [ ! -f $@ ]; then \
-		cd $(SOURCES_DIR)/mwdumper-git/ && mvn package; \
+		cd $(SOURCES_DIR)/mwdumper-git/ &&  $(MVN) package; \
 		cp $(SOURCES_DIR)/mwdumper-git/target/mwdumper-1.16.jar $@; \
 	fi
 
