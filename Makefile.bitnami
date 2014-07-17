@@ -142,7 +142,7 @@ mw-%-disable: mw-backup-localconf
 	rm /tmp/fifo
 
 .PHONY:
-mw-%-enable: %-is-a-registered-extension mw-backup-localconf $(MW_EXTENSIONS_DIR)/%/ 
+mw-%-enable: %-is-a-registered-extension mw-backup-localconf $(MW_EXTENSIONS_DIR)/%/
 	@echo "Enabling mediawiki extension $*"
 	if ! grep -F "# $*" $(MW_LOCALCONF); then \
 		file_php="$$(cd $(MW_EXTENSIONS_DIR)/../ && ls extensions/$*/*/$(mw-$*-php))"; \
@@ -166,7 +166,9 @@ $(MW_EXTENSIONS:%=%-is-a-registered-extension):
 
 .PHONY:
 mw-%-clean: mw-%-disable
-	rm -rf $(DRAFTS_DIR)/$(@:%-clean=%)-mwext.tar.gz $(MW_EXTENSIONS_DIR)/$(@:%-clean=%)/
+	rm -rf $(DRAFTS_DIR)/$(@:mw-%-clean=%)-mwext.tar.gz $(MW_EXTENSIONS_DIR)/$(@:mw-%-clean=%)/
 
 mw-print-registered-extensions:
 	@echo "$(MW_EXTENSIONS)"
+
+mw-%-reinstall: mw-%-clean mw-%enable

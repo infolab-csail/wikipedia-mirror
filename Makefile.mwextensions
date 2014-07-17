@@ -3,7 +3,7 @@
 # Scribunto ladies and gentlemen. Consider this an example on how to
 # add new extensions.
 MW_EXTENSIONS += scribunto
-mw-scribunto-url =https://codeload.github.com/wikimedia/mediawiki-extensions-Scribunto/legacy.tar.gz/REL1_19
+mw-scribunto-url = https://github.com/wikimedia/mediawiki-extensions-Scribunto/archive/master.tar.gz
 mw-scribunto-php = Scribunto.php
 # Make sure this is a string that can be directly passed to echo. I
 # dont surround it with quotes or anything.
