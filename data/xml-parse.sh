@@ -44,7 +44,8 @@ function file_range {
 
     if [[ $len -gt 0 ]]; then
 	# Dump to stdout
-	dd ibs=1 if=$file skip=$start count=$len
+	cmd="time dd ibs=1 if=$file skip=$start count=$len"
+	eval $cmd
     else
 	skip=$(($start + ($len)))
 	len=$((- ($len)))
@@ -55,7 +56,8 @@ function file_range {
 	fi
 
 	# Dump to stdout
-        time dd ibs=1 if=$file skip=$skip count=$len
+        cmd=time dd ibs=1 if=$file skip=$skip count=$len
+	eval $cmd
     fi
 }
 

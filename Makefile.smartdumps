@@ -156,8 +156,8 @@ $(SQL_PARTS): $$(patsubst %.sql,%.fix.xml,$$@) | $(TOOLS_DIR)/xml-parse.sh $(MWD
 		$(call quiet-err,$(DUMP_CMD_xml) $< | $(last_article_filter) >> $(err_file)) && \
 		echo "The errored article is $$(cat $(err_file) | tail -1) ( $(err_file) ). Fixing... (time: $$(date))" &&  \
 		rm -rf $@ && \
-		$(TOOLS_DIR)/xml-parse.sh $< "$$(cat $(err_file) | tail -1)" > "$<.mwfix" && \
-		$(call quiet-err,$(DUMP_CMD) $<.wmfix > $@) && \
+		$(TOOLS_DIR)/xml-parse.sh $< "$$(cat $(err_file) | tail -1)" > /tmp/$$(basename $<.mw_fix) && \
+		$(call quiet-err,$(DUMP_CMD) /tmp/$$(basename $<.mw_fix) > $@) && \
 		echo "Finished second pass over $< afer removing $$(cat $(err_file) | tail -1)"; \
 	fi
 
