@@ -76,6 +76,13 @@ or-file = $(if $(call file-exists,$(1)), $(1), $(2))
 cond-subst = $(call or-file, $(patsubst $(1), $(2), $(4)), \
 $(patsubst $(1), $(3), $(4)))
 
+
+PHONY:
+fixed-xml-dumps: $(FIXED_XML_PARTS)
+
+.PHONY:
+xml-dumps: $(XML_PARTS)
+
 test-cond:
 	mkdir /tmp/makefile-tests/
 	touch /tmp/makefile-tests/test.bz
@@ -85,12 +92,26 @@ test-cond:
 	@echo $(call cond-subst, "%.bz", "%.lo", "%.sql", "/tmp/makefile-tests/test.bz") "= /tmp/makefile-tests/test.lo"
 	rm -rf /tmp/makefile-tests/
 
+ORIGINAL_XML=<mediawiki>\nbefore page 1\n<page>\nbefore title 1\n<title>title 1</title>\nafter title 1\n</page>\nafter page 1\n<page>\nbefore title 2\n<title>title 2</title>\nafter title 2\n</page>\nafter page 2\n</mediawiki>
+CLEAN_XML=<mediawiki>\nbefore page 1\n<page>\nbefore title 1\n<title>title 1</title>\nafter title 1\n</page>\nafter page 1\nafter page 2\n</mediawiki>
+test-page-remover: $(TOOLS_DIR)/xml-parse.sh
+	echo "$(ORIGINAL_XML)" > /tmp/test.xml
+	$(TOOLS_DIR)/xml-parse.sh /tmp/test.xml "title 2" > /tmp/test.clean.xml
+	rm /tmp/test.xml
+	@echo "### Should have this"
+	cat /tmp/test.clean.xml
+	@echo "### Be the same as this"
+	@echo "$(CLEAN_XML)"
+	[ "$(shell cat /tmp/test.clean.xml)" = "$(shell echo "$(CLEAN_XML)")" ]
+
+	rm /tmp/test.clean.xml
+
 .INTERMEDIATE: $(BZ_PARTS) $(SQL_PARTS)
 
 $(WP_PARTS_DIR):
 	mkdir -p $(WP_PARTS_DIR)
 
-# For each dump make targets for their corresponding files in
+# For each dump make targets for their corresponding files in0
 # WP_PARTS_DIR
 $(BZ_PARTS): | $(WP_PARTS_DIR)
 	echo "Dowloading: $@..."
@@ -101,17 +122,56 @@ DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=xml
 DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS)  --format=sql:1.5
 DUMP_CMD = $(DUMP_CMD_sql)
 
+err_file=$(DRAFTS_DIR)/errored_articles
 
-# For each page make a .sql file target.
-# If there is a fixed target it get prescedence.
-%.sql: %.fix.xml | $(MWDUMPER_JAR)
-	$(DUMP_CMD) $< > $@; \
+$(TOOLS_DIR)/xml-parse.sh: $(DATA_DIR)/xml-parse.sh
+	cp $< $@
 
+# Watch out now. If a quiet command fails, the stderr is swallowed. If
+# this turns out to be problem make a ring buffer of lines. to keep
+# the last lines of output.
+REV_COUNT_FEEDBACK=50
+quiet_filter=awk 'BEGIN{cnt=0; tot=0; print "Will be printing once every $(REV_COUNT_FEEDBACK) lines (controlled by REV_COUNT_FEEDBACK)"} {cnt=cnt+1} (cnt >= $(REV_COUNT_FEEDBACK)){tot=tot+cnt; print "[Total lines: " tot " ] " $$0; cnt=0}'
+last_article_filter=tac | grep -m 1 -F "<title>" | sed  's/ *<title>\(.*\)<\/title>/\1/'
+
+
+# Quiet err will sample the stderr and also show the last 20 lines
+fifo1 := $(shell mktemp --dry-run)
+fifo2 := $(shell mktemp --dry-run)
+quiet-err = (ret=0; mkfifo $(fifo1) && mkfifo $(fifo2) && \
+	(cat $(fifo1) | tee $(fifo2) | $(quiet_filter) &  reader_pid1=$$! && \
+	cat $(fifo2) | tail -20 & reader_pid2=$$! && \
+	echo "Running command, readers on pids $$reader_pid1, $$reader_pid2"; \
+	( $1 ) 2>$(fifo1); export ret=$$?; \
+	wait; \
+	rm -rf $(fifo1) $(fifo2); exit $$ret))
+
+test-quiet-err:
+	@echo "If you can see this you are fine"
+	! $(call  quiet-err, awk 'BEGIN{for (i=0;i<500; i++) print i}' >&2; exit 55);
+
+$(SQL_PARTS): $$(patsubst %.sql,%.fix.xml,$$@) | $(TOOLS_DIR)/xml-parse.sh $(MWDUMPER_JAR)
+	@echo "Generating $@"
+	if ! ($(call quiet-err,$(DUMP_CMD) $< > $@ ) || (echo "FAIL" && false)); then \
+		$(call quiet-err,$(DUMP_CMD_xml) $< | $(last_article_filter) >> $(err_file)) && \
+		echo "The errored article is $$(cat $(err_file) | tail -1) ( $(err_file) ). Fixing... (time: $$(date))" &&  \
+		rm -rf $@ && \
+		$(TOOLS_DIR)/xml-parse.sh $< "$$(cat $(err_file) | tail -1)" > "$<.mwfix" && \
+		$(call quiet-err,$(DUMP_CMD) $<.wmfix > $@) && \
+		echo "Finished second pass over $< afer removing $$(cat $(err_file) | tail -1)"; \
+	fi
+
+show-error-file:
+	@echo $(err_file)
+
+# To avoid recursion i will assume that only one article is problematic.
+
+# You can use mwdumber-command-sql or mwdumper-command-xml to get the
+# respective commands that should create dumps of those formats. Use
+# the xml one to investigate where mwdumper breaks.
+.PHONY:
 mwdumper-command-%:
 	@echo "$(DUMP_CMD_$*) IN_XML_FILE > OUT_$*_FILE "
-
-# Create all sql dumps.
-sql-dump-parts: $(SQL_PARTS)
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
@@ -143,5 +203,10 @@ fix-%.bz2: $$(patsubst fix-%.bz2,%.fix.xml,$$@)
 .PHONY:
 sql-load-parts: $(LOADED_MARKERS)
 
+.PHONY:
 clean-sql-parts:
 	rm -rf $(SQL_PARTS)
+
+# Create all sql dumps.
+.PHONY:
+sql-dump-parts: $(SQL_PARTS)

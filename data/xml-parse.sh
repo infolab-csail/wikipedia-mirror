@@ -25,11 +25,16 @@ ORIGINAL_XML=$1
 # ORIGINAL_XML=$PROJECT_ROOT/drafts/wikipedia-parts/enwiki-20131202-pages-articles20.xml-p011125004p013324998.fix.xml
 # ORIGINAL_XML=/tmp/123.xml
 
-
+# Dump a part of the file in sdout using dd.
+# Usage:
+# file_range <filename> <first_byte> <start|end|length>
+#
+# Length can be negative
 function file_range {
     file=$1
     start=$2
     len=$3
+
 
     case $len in
 	"end") dd ibs=1 if=$file skip=$start; return 0;;
@@ -43,20 +48,23 @@ function file_range {
     else
 	skip=$(($start + ($len)))
 	len=$((- ($len)))
+
 	if [[ $skip -lt 0 ]]; then
 	    skip=0
 	    len=$start
 	fi
 
 	# Dump to stdout
-        dd ibs=1 if=$file skip=$skip count=$len
+        time dd ibs=1 if=$file skip=$skip count=$len
     fi
 }
 
 # Throw page in stdout
+#
+# xml_page "Barack Obama"
 function xml_page {
 
-    term="<title>$@</title>"
+    term="<title>$1</title>"
 
     title_offset=$(grep -b -F "$term" -m 1 $ORIGINAL_XML | grep -o "[0-9]*" | head -1)
 
@@ -76,7 +84,18 @@ function xml_page {
     dd if=$ORIGINAL_XML skip=$title_offset ibs=1 | sed -n '/<\/page>/{p;q};p'
 }
 
+
+function backwards {
+    tac -b | rev
+}
+
+function grep_once {
+    grep -b -o -F "$1" -m 1
+}
+
 # Throw everything but the page in stdout
+#
+# neg_xml_page "Barack Obama"
 function neg_xml_page {
     term="<title>$1</title>"
     title_offset=$(grep -b -o -F "$term" -m 1 $ORIGINAL_XML | grep -o "[0-9]*" -m 1 | head -1)
@@ -90,25 +109,30 @@ function neg_xml_page {
 	return
     fi
 
-    to_page_start=$(($(file_range $ORIGINAL_XML $title_offset -1000 | tac -b | rev | grep -b -o -F "$(echo '<page>' | rev)" -m 1 | grep -o "[0-9]*" -m 1)+7))
+    to_page_start=$(($(file_range $ORIGINAL_XML $title_offset -1000 | backwards | grep_once "$(echo '<page>' | rev)" | cut -d: -f 1 )+7))
     echo -e "\tto page start: $to_page_start" 1>&2
-    to_page_end=$(($(file_range $ORIGINAL_XML $title_offset end | grep -o -b -F "</page>" -m 1 | grep -o "[0-9]*")+7))
+    to_page_end=$(($(file_range $ORIGINAL_XML $title_offset end | grep_once "</page>" | cut -d: -f 1)+7))
     echo -e "\tto page end: $to_page_end" 1>&2
-    page_start=$(($title_offset - $to_page_start))
+    page_start=$(($title_offset - $to_page_start +1 ))
     page_end=$(($title_offset + $to_page_end))
 
-    echo -e "\tpage start: $page_start\n\tpage end: $page_end,\n\tbytes to copy: $(($(du -b $ORIGINAL_XML | awk '{print $1}') - $page_start + $page_end))" 1>&2
+    echo -e "\tpage start: $page_start" 1>&2
+    echo -e "\tpage end: $page_end" 1>&2
+    echo -e "\tbytes to copy: $(($(du -b $ORIGINAL_XML | awk '{print $1}') - $page_start + $page_end))" 1>&2
 
     if [[ "$2" = "inplace" ]]; then
 	echo -e "Using in place covering with $PAGE_REMOVER.." 1>&2
 	cmd="$PAGE_REMOVER $ORIGINAL_XML $page_start $(($page_end-$page_start))"
-	echo "Running: $cmd"
-	$cmd
+	echo "Running: $cmd" 1>&2
+	eval $cmd
 	return;
     fi
 
+    echo "Going to copy $page_start bytes" 1>&2
     file_range $ORIGINAL_XML $page_start start
+    echo "Finished the first half up to $page_start, $(( $(du -b $ORIGINAL_XML | cut -f 1) - $page_end )) to go" 1>&2
     file_range $ORIGINAL_XML $page_end end
+    echo "Finished the whole thing." 1>&2
 }
 
 # Put stdin betwinn mediawiki tags and into stdout
