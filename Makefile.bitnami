@@ -10,6 +10,7 @@ BMW_MYSQL_PORT=3307
 
 MYSQL=$(FILESYSTEM_ROOT)/mysql/bin/mysql
 MYSQL_CMD=$(MYSQL) -u $(BMW_MYSQL_USER) --password=$(BMW_MYSQL_PASS) $(BMW_MYSQL_DB) --force
+MYSQL_ROOT_CMD=$(MYSQL) -u root --password=$(BMW_MYSQL_ROOT_PASS) $(BMW_MYSQL_DB) --force
 BMWCTRL=$(FILESYSTEM_ROOT)/ctlscript.sh
 
 BMW_TARGETS=$(MYSQL) $(BMWCTRL)
@@ -65,6 +66,14 @@ bmw-uninstall: bmw-kill
 # ~~~~~~~~~~ MySQL ~~~~~~~~~~
 mysql-shell: $(MYSQL) bmw-run
 	$(MYSQL_CMD)
+
+mysql-root-shell: $(MYSQL) bmw-run
+	$(MYSQL_ROOT_CMD)
+
+# By default the local user cannot connect remotely. Run this to
+# change all that.
+allow-remote-localuser:
+	echo "grant all on $(BMW_MYSQL_DB).* to $(BMW_MYSQL_USER)@'%' identified by '$(BMW_MYSQL_PASS)';" | $(MYSQL_ROOT_CMD)
 
 mysql-clear: bmw-run
 	$(DATA_DIR)/sql-clear.sh $(BMW_MYSQL_USER) $(BMW_MYSQL_PASS) $(BMW_MYSQL_DB) $(MYSQL)
