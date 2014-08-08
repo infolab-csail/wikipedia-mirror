@@ -75,8 +75,14 @@ mysql-root-shell: $(MYSQL) bmw-run
 # By default the local user cannot connect remotely. Run this to
 # change all that.
 .PHONY:
-allow-remote-localuser:
+mysql-allow-remote-localuser:
 	echo "grant all on $(BMW_MYSQL_DB).* to $(BMW_MYSQL_USER)@'%' identified by '$(BMW_MYSQL_PASS)';" | $(MYSQL_ROOT_CMD)
+
+.PHONY:
+mysql-fix-root-user: bmw-kill
+	@echo "#### Kill this by hand when it finishes ####"
+	echo "UPDATE mysql.user SET Password=PASSWORD('$(BMW_MYSQL_ROOT_PASS)') WHERE User='root'; \nFLUSH PRIVILEGES;" > /tmp/resetroot.sql
+	$(FILESYSTEM_ROOT)/mysql/bin/mysqld --init-file=/tmp/resetroot.sql
 
 .PHONY:
 mysql-check:

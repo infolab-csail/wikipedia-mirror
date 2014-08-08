@@ -210,3 +210,17 @@ clean-sql-parts:
 # Create all sql dumps.
 .PHONY:
 sql-dump-parts: $(SQL_PARTS)
+
+count-pages-in-files=(for i in $1; do grep -F "<page>" $$i; done | wc -l)
+.PHONY:
+test-articles-number: $(FIXED_XML_PARTS) $(XML_PARTS) $(LOADED_MARKERS)
+	@echo "XML dumps page count:"
+	$(call count-pages-in-files, $(XML_PARTS))
+	@echo "Fixed XML dumps page count:"
+	$(call count-pages-in-files, $(FIXED_XML_PARTS))
+	@echo "Database page count:"
+	echo "select count(*) from page" | $(MYSQL_CMD)
+
+.PHONY:
+show-innodb-stats:
+	echo $$(echo "show engine innodb status" | $(MYSQL_ROOT_CMD))
