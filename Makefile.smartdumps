@@ -61,7 +61,6 @@ enwiki-20140614-pages-meta-current25.xml-p023725001p026624999.bz2 \
 enwiki-20140614-pages-meta-current26.xml-p026625002p029625000.bz2 \
 enwiki-20140614-pages-meta-current27.xml-p029625001p043052726.bz2
 
-
 # WP_BASE_URL = http://wikimedia.wansec.com/archive/enwiki/20080103/
 # WP_ALL_PAGES = enwiki-20080103-pages-articles.xml.bz2
 
@@ -185,7 +184,6 @@ SQL_NOTIFY_INTERVAL=500
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-<<<<<<< HEAD
 	/bin/bash -c '\
 		( echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;" && \
 			cat $(@:.sql-loaded=.sql) && \
@@ -193,13 +191,6 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 		tee >( $(MYSQL_CMD) ) | \
 		awk \'(NR % $(SQL_NOTIFY_INTERVAL) == 0){print "[" systime() "] Loaded " NR " sql cmds"}\'' && \
 	touch $@
-=======
-	(echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;"; \
-		cat $(@:.sql-loaded=.sql); \
-		echo "SET FOREIGN_KEY_CHECKS = 1;COMMIT;SET AUTOCOMMIT = 1;" \
-	) | $(MYSQL_CMD) && \
-	echo "Finished: $$(date)" | tee $@
->>>>>>> Fine tuned
 
 
 ## FIXING UTF8
@@ -229,7 +220,6 @@ clean-sql-parts:
 sql-dump-parts: $(SQL_PARTS)
 
 <<<<<<< HEAD
-count-pages-in-files=(for i in $1; do grep -F "<page>" $$i; done | wc -l)
 .PHONY:
 test-articles-number: $(FIXED_XML_PARTS) $(XML_PARTS) $(LOADED_MARKERS)
 	@echo "XML dumps page count:"
@@ -256,7 +246,7 @@ show-sql-loaded-files-number:
 .PHONY:
 show-sql-load-percentage: $(FIXED_XML_PARTS)
 	for i in $(FIXED_XML_PARTS); do stat -c '%X %s %n' $$i; done | sort | awk 'BEGIN{sum=0; tot=0} (NR < $(sql_loaded_so_far)+1){sum+=$$2; print "*"} { print; tot+=$$2} END{print sum "/" tot" = " sum/tot }'
-=======
+
 $(TOOLS_DIR)/stats.py: $(DATA_DIR)/stats.py
 	cp $< $@
 
@@ -284,4 +274,3 @@ test-stats: $(TOOLS_DIR)/stats.py
 .PHONY:
 test-dump-times:
 	$(LOAD_DUMP_TIMES_CMD)
->>>>>>> Fine tuned
