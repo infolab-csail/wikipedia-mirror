@@ -119,7 +119,7 @@ $(WP_PARTS_DIR):
 $(BZ_PARTS): | $(WP_PARTS_DIR)
 	echo "Dowloading: $@..."
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
-	touch $@
+	touch $@ # Make sure the timestamp is the download time.
 
 DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=xml
 DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS)  --format=sql:1.5
@@ -178,12 +178,16 @@ mwdumper-command-%:
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
+SQL_NOTIFY_INTERVAL=500
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-	time /bin/bash -c '((echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;" && \
-		cat $(@:.sql-loaded=.sql) && \
-		echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | $(MYSQL_CMD))' && \
+	/bin/bash -c '\
+		( echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;" && \
+			cat $(@:.sql-loaded=.sql) && \
+			echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | \
+		tee >( $(MYSQL_CMD) ) | \
+		awk \'(NR % $(SQL_NOTIFY_INTERVAL) == 0){print "[" systime() "] Loaded " NR " sql cmds"}\'' && \
 	touch $@
 
 
