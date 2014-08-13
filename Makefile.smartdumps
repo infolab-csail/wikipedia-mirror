@@ -219,7 +219,6 @@ clean-sql-parts:
 .PHONY:
 sql-dump-parts: $(SQL_PARTS)
 
-<<<<<<< HEAD
 .PHONY:
 test-articles-number: $(FIXED_XML_PARTS) $(XML_PARTS) $(LOADED_MARKERS)
 	@echo "XML dumps page count:"
