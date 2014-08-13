@@ -189,7 +189,7 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 			cat $(@:.sql-loaded=.sql) && \
 			echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | \
 		tee >( $(MYSQL_CMD) ) | \
-		awk \'(NR % $(SQL_NOTIFY_INTERVAL) == 0){print "[" systime() "] Loaded " NR " sql cmds"}\'' && \
+		awk \'BEGIN{pt=systime()} (NR % $(SQL_NOTIFY_INTERVAL) == 0){nt=systime(); print "[ " nt " (interv:" (pt-nt)/60 "mins) ] Loaded " NR " sql cmds"}; pt=nt\'' && \
 	touch $@
 
 
