@@ -31,7 +31,6 @@
 # enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2
 #WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20131202
 
-
 WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20140614
 WP_ALL_PAGES = enwiki-20140614-pages-meta-current1.xml-p000000010p000010000.bz2 \
 enwiki-20140614-pages-meta-current2.xml-p000010001p000025000.bz2 \
@@ -123,8 +122,9 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@ # Make sure the timestamp is the download time.
 
-DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=xml
-DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS)  --format=sql:1.5
+MWDUMPER_ARGS+= --filter=notalk --filter=latest --filter=namespace:\!NS_USER
+DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  --format=xml $(MWDUMPER_ARGS)
+DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  --format=sql:1.5  $(MWDUMPER_ARGS)
 DUMP_CMD = $(DUMP_CMD_sql)
 
 err_file=$(DRAFTS_DIR)/errored_articles
@@ -219,6 +219,7 @@ clean-sql-parts:
 .PHONY:
 sql-dump-parts: $(SQL_PARTS)
 
+count-pages-in-files=(for i in $1; do grep -F "<page>" $$i; done | wc -l)
 .PHONY:
 test-articles-number: $(FIXED_XML_PARTS) $(XML_PARTS) $(LOADED_MARKERS)
 	@echo "XML dumps page count:"
