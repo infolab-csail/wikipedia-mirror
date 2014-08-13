@@ -65,10 +65,10 @@ enwiki-20140614-pages-meta-current27.xml-p029625001p043052726.bz2
 WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
 
 BZ_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.bz2)
-SQL_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
+SQL_PARTS =  $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
 XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.raw.xml)
 FIXED_XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.fix.xml)
-LOADED_MARKERS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded)
+LOADED_MARKERS = $(SQL_PARTS:%.sql=%.sql-loaded)
 
 file-exists = $(shell ls $(1))
 or-file = $(if $(call file-exists,$(1)), $(1), $(2))
@@ -76,6 +76,9 @@ or-file = $(if $(call file-exists,$(1)), $(1), $(2))
 cond-subst = $(call or-file, $(patsubst $(1), $(2), $(4)), \
 $(patsubst $(1), $(3), $(4)))
 
+# This is a 0byte dummy to help with the time estimation.
+$(WP_PARTS_DIR)/dummy.sql:
+	touch $@
 
 PHONY:
 fixed-xml-dumps: $(FIXED_XML_PARTS)
@@ -182,7 +185,7 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 		cat $(@:.sql-loaded=.sql); \
 		echo "SET FOREIGN_KEY_CHECKS = 1;COMMIT;SET AUTOCOMMIT = 1;" \
 	) | $(MYSQL_CMD) && \
-	touch $@
+	echo "Finished: $$(date)" | tee $@
 
 
 ## FIXING UTF8
@@ -201,7 +204,7 @@ fix-%.bz2: $$(patsubst fix-%.bz2,%.fix.xml,$$@)
 
 # Load all sql files.
 .PHONY:
-sql-load-parts: $(LOADED_MARKERS)
+sql-load-parts: $(WP_PARTS_DIR)/dummy.sql $(LOADED_MARKERS)
 
 .PHONY:
 clean-sql-parts:
@@ -210,3 +213,31 @@ clean-sql-parts:
 # Create all sql dumps.
 .PHONY:
 sql-dump-parts: $(SQL_PARTS)
+
+$(TOOLS_DIR)/stats.py: $(DATA_DIR)/stats.py
+	cp $< $@
+
+LOAD_DUMP_TIMES_CMD=(for i in $(LOADED_MARKERS); do \
+	[ -f $$i ] && echo $$(stat -c '%X' $$i 2> /dev/null) $$(stat -c '%s' $${i%-loaded}); done | \
+	sort | awk '(NR==1){stime=$$1; totsize=0} {totsize+=$$2} {print totsize " " $$1-stime}' )
+
+TOTAL_SQL_SIZE=$(shell sum=0; for i in $(SQL_PARTS); do sum=$$(($$sum+$$(stat -c '%s' $${i%-loaded}))); done; echo $$sum)
+SQL_PARTS_COUNT=$(shell for i in $(SQL_PARTS); do echo $$i; done | wc -l)
+
+TIME_ESTIMATE_CMD=$(LOAD_DUMP_TIMES_CMD) | python $< estimate $(TOTAL_SQL_SIZE)
+
+export MPLCONFIGDIR=$(DRAFTS_DIR)
+.PHONY:
+show-estimated-time: $(TOOLS_DIR)/stats.py
+	$(TIME_ESTIMATE_CMD)
+
+
+.PHONY:
+test-stats: $(TOOLS_DIR)/stats.py
+	echo "1 2" | python $< estimate
+	echo -n "0\n1\n2\n" | python $< estimate 10
+	echo -n "1 1\n2 2\n3 3\n" | python $< estimate 10
+
+.PHONY:
+test-dump-times:
+	$(LOAD_DUMP_TIMES_CMD)
