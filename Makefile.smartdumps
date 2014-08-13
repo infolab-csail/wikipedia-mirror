@@ -32,35 +32,38 @@
 #WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20131202
 
 
-WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20140614
+#WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20140614
+# WP_ALL_PAGES = enwiki-20140614-pages-meta-current1.xml-p000000010p000010000.bz2 \
+# enwiki-20140614-pages-meta-current2.xml-p000010001p000025000.bz2 \
+# enwiki-20140614-pages-meta-current3.xml-p000025001p000055000.bz2 \
+# enwiki-20140614-pages-meta-current4.xml-p000055002p000104998.bz2 \
+# enwiki-20140614-pages-meta-current5.xml-p000105001p000184999.bz2 \
+# enwiki-20140614-pages-meta-current6.xml-p000185003p000305000.bz2 \
+# enwiki-20140614-pages-meta-current7.xml-p000305002p000464997.bz2 \
+# enwiki-20140614-pages-meta-current8.xml-p000465001p000665000.bz2 \
+# enwiki-20140614-pages-meta-current9.xml-p000665001p000925000.bz2 \
+# enwiki-20140614-pages-meta-current10.xml-p000925001p001325000.bz2 \
+# enwiki-20140614-pages-meta-current11.xml-p001325001p001825000.bz2 \
+# enwiki-20140614-pages-meta-current12.xml-p001825001p002425000.bz2 \
+# enwiki-20140614-pages-meta-current13.xml-p002425001p003124998.bz2 \
+# enwiki-20140614-pages-meta-current14.xml-p003125001p003924999.bz2 \
+# enwiki-20140614-pages-meta-current15.xml-p003925001p004825000.bz2 \
+# enwiki-20140614-pages-meta-current16.xml-p004825002p006025000.bz2 \
+# enwiki-20140614-pages-meta-current17.xml-p006025001p007524997.bz2 \
+# enwiki-20140614-pages-meta-current18.xml-p007525002p009225000.bz2 \
+# enwiki-20140614-pages-meta-current19.xml-p009225001p011125000.bz2 \
+# enwiki-20140614-pages-meta-current20.xml-p011125001p013324998.bz2 \
+# enwiki-20140614-pages-meta-current21.xml-p013325001p015725000.bz2 \
+# enwiki-20140614-pages-meta-current22.xml-p015725003p018225000.bz2 \
+# enwiki-20140614-pages-meta-current23.xml-p018225001p020925000.bz2 \
+# enwiki-20140614-pages-meta-current24.xml-p020925002p023725000.bz2 \
+# enwiki-20140614-pages-meta-current25.xml-p023725001p026624999.bz2 \
+# enwiki-20140614-pages-meta-current26.xml-p026625002p029625000.bz2 \
+# enwiki-20140614-pages-meta-current27.xml-p029625001p043052726.bz2
 
-WP_ALL_PAGES = enwiki-20140614-pages-meta-current1.xml-p000000010p000010000.bz2 \
-enwiki-20140614-pages-meta-current2.xml-p000010001p000025000.bz2 \
-enwiki-20140614-pages-meta-current3.xml-p000025001p000055000.bz2 \
-enwiki-20140614-pages-meta-current4.xml-p000055002p000104998.bz2 \
-enwiki-20140614-pages-meta-current5.xml-p000105001p000184999.bz2 \
-enwiki-20140614-pages-meta-current6.xml-p000185003p000305000.bz2 \
-enwiki-20140614-pages-meta-current7.xml-p000305002p000464997.bz2 \
-enwiki-20140614-pages-meta-current8.xml-p000465001p000665000.bz2 \
-enwiki-20140614-pages-meta-current9.xml-p000665001p000925000.bz2 \
-enwiki-20140614-pages-meta-current10.xml-p000925001p001325000.bz2 \
-enwiki-20140614-pages-meta-current11.xml-p001325001p001825000.bz2 \
-enwiki-20140614-pages-meta-current12.xml-p001825001p002425000.bz2 \
-enwiki-20140614-pages-meta-current13.xml-p002425001p003124998.bz2 \
-enwiki-20140614-pages-meta-current14.xml-p003125001p003924999.bz2 \
-enwiki-20140614-pages-meta-current15.xml-p003925001p004825000.bz2 \
-enwiki-20140614-pages-meta-current16.xml-p004825002p006025000.bz2 \
-enwiki-20140614-pages-meta-current17.xml-p006025001p007524997.bz2 \
-enwiki-20140614-pages-meta-current18.xml-p007525002p009225000.bz2 \
-enwiki-20140614-pages-meta-current19.xml-p009225001p011125000.bz2 \
-enwiki-20140614-pages-meta-current20.xml-p011125001p013324998.bz2 \
-enwiki-20140614-pages-meta-current21.xml-p013325001p015725000.bz2 \
-enwiki-20140614-pages-meta-current22.xml-p015725003p018225000.bz2 \
-enwiki-20140614-pages-meta-current23.xml-p018225001p020925000.bz2 \
-enwiki-20140614-pages-meta-current24.xml-p020925002p023725000.bz2 \
-enwiki-20140614-pages-meta-current25.xml-p023725001p026624999.bz2 \
-enwiki-20140614-pages-meta-current26.xml-p026625002p029625000.bz2 \
-enwiki-20140614-pages-meta-current27.xml-p029625001p043052726.bz2
+
+WP_BASE_URL = http://wikimedia.wansec.com/archive/enwiki/20080103/
+WP_ALL_PAGES = enwiki-20080103-pages-articles.xml.bz2
 
 WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
 
@@ -119,7 +122,7 @@ $(WP_PARTS_DIR):
 $(BZ_PARTS): | $(WP_PARTS_DIR)
 	echo "Dowloading: $@..."
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
-	touch $@
+	touch $@ # Make sure the timestamp is the download time.
 
 DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=xml
 DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS)  --format=sql:1.5
@@ -127,7 +130,7 @@ DUMP_CMD = $(DUMP_CMD_sql)
 
 err_file=$(DRAFTS_DIR)/errored_articles
 
-$(TOOLS_DIR)/xml-parse.sh: $(DATA_DIR)/xml-parse.sh
+$(TOOLS_DIR)/xml-parse.sh: $(DATA_DIR)/xml-parse.sh | $(TOOLS_DIR)
 	cp $< $@
 
 # Watch out now. If a quiet command fails, the stderr is swallowed. If
@@ -178,15 +181,17 @@ mwdumper-command-%:
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
+SQL_NOTIFY_INTERVAL=500
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-	(echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;"; \
-		cat $(@:.sql-loaded=.sql); \
-		echo "SET FOREIGN_KEY_CHECKS = 1;COMMIT;SET AUTOCOMMIT = 1;" \
-	) | $(MYSQL_CMD) && \
-	echo "Finished: $$(date)" | tee $@
-
+	/bin/bash -c '\
+		( echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;" && \
+			cat $(@:.sql-loaded=.sql) && \
+			echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | \
+		tee >( $(MYSQL_CMD) ) | \
+		awk \'(NR % $(SQL_NOTIFY_INTERVAL) == 0){print "[" systime() "] Loaded " NR " sql cmds"}\'' && \
+	touch $@
 
 ## FIXING UTF8
 # It turns out part 20 has some utf8 problems. Here are some targets
@@ -241,3 +246,31 @@ test-stats: $(TOOLS_DIR)/stats.py
 .PHONY:
 test-dump-times:
 	$(LOAD_DUMP_TIMES_CMD)
+
+count-pages-in-files=(for i in $1; do grep -F "<page>" $$i; done | wc -l)
+.PHONY:
+test-articles-number: $(FIXED_XML_PARTS) $(XML_PARTS) $(LOADED_MARKERS)
+	@echo "XML dumps page count:"
+	$(call count-pages-in-files, $(XML_PARTS))
+	@echo "Fixed XML dumps page count:"
+	$(call count-pages-in-files, $(FIXED_XML_PARTS))
+	@echo "Database page count:"
+	echo "select count(*) from page" | $(MYSQL_CMD)
+
+.PHONY:
+show-innodb-stats:
+	echo $$(echo "show engine innodb status" | $(MYSQL_ROOT_CMD))
+
+.PHONY:
+sql-clean: mysql-clear
+	rm -rf $(LOADED_MARKERS)
+
+
+sql_loaded_so_far=$(shell ls $(WP_PARTS_DIR)/*-loaded | wc -l)
+.PHONY:
+show-sql-loaded-files-number:
+	@echo $(sql_loaded_so_far)
+
+.PHONY:
+show-sql-load-percentage: $(FIXED_XML_PARTS)
+	for i in $(FIXED_XML_PARTS); do stat -c '%X %s %n' $$i; done | sort | awk 'BEGIN{sum=0; tot=0} (NR < $(sql_loaded_so_far)+1){sum+=$$2; print "*"} { print; tot+=$$2} END{print sum "/" tot" = " sum/tot }'
