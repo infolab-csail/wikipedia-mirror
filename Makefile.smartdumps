@@ -121,6 +121,7 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@
 
+MWDUMPER_ARGS=--filter=notalk --filter=latest --filter=namespace:\!NS_USER
 DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=xml
 DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS)  --format=sql:1.5
 DUMP_CMD = $(DUMP_CMD_sql)
