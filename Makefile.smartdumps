@@ -189,9 +189,8 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 			cat $(@:.sql-loaded=.sql) && \
 			echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | \
 		tee >( $(MYSQL_CMD) ) | \
-		awk \'BEGIN{pt=systime()} (NR % $(SQL_NOTIFY_INTERVAL) == 0){nt=systime(); print "[ " nt " (interv:" (pt-nt)/60 "mins) ] Loaded " NR " sql cmds"}; pt=nt\'' && \
+		awk \'BEGIN{pt=systime()} (NR % $(SQL_NOTIFY_INTERVAL) == 0){nt=systime(); print "[ " nt " (interv: " (pt-nt)/60 "mins) ] Loaded " NR " sql cmds"}; pt=nt\'' && \
 	touch $@
-
 
 ## FIXING UTF8
 # It turns out part 20 has some utf8 problems. Here are some targets
@@ -218,6 +217,34 @@ clean-sql-parts:
 # Create all sql dumps.
 .PHONY:
 sql-dump-parts: $(SQL_PARTS)
+
+$(TOOLS_DIR)/stats.py: $(DATA_DIR)/stats.py
+	cp $< $@
+
+LOAD_DUMP_TIMES_CMD=(for i in $(LOADED_MARKERS); do \
+	[ -f $$i ] && echo $$(stat -c '%X' $$i 2> /dev/null) $$(stat -c '%s' $${i%-loaded}); done | \
+	sort | awk '(NR==1){stime=$$1; totsize=0} {totsize+=$$2} {print totsize " " $$1-stime}' )
+
+TOTAL_SQL_SIZE=$(shell sum=0; for i in $(SQL_PARTS); do sum=$$(($$sum+$$(stat -c '%s' $${i%-loaded}))); done; echo $$sum)
+SQL_PARTS_COUNT=$(shell for i in $(SQL_PARTS); do echo $$i; done | wc -l)
+
+TIME_ESTIMATE_CMD=$(LOAD_DUMP_TIMES_CMD) | python $< estimate $(TOTAL_SQL_SIZE)
+
+export MPLCONFIGDIR=$(DRAFTS_DIR)
+.PHONY:
+show-estimated-time: $(TOOLS_DIR)/stats.py
+	$(TIME_ESTIMATE_CMD)
+
+
+.PHONY:
+test-stats: $(TOOLS_DIR)/stats.py
+	echo "1 2" | python $< estimate
+	echo -n "0\n1\n2\n" | python $< estimate 10
+	echo -n "1 1\n2 2\n3 3\n" | python $< estimate 10
+
+.PHONY:
+test-dump-times:
+	$(LOAD_DUMP_TIMES_CMD)
 
 count-pages-in-files=(for i in $1; do grep -F "<page>" $$i; done | wc -l)
 .PHONY:
