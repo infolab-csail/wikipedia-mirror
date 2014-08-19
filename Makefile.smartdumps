@@ -180,16 +180,19 @@ mwdumper-command-%:
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
-SQL_NOTIFY_INTERVAL=500
+SQL_NOTIFY_INTERVAL = 50
+MYSQL_LOADING_PROGRESS_FILE = $(FILESYSTEM_ROOT)/mysql-progress.log
+MYSQL_ERROR_LOG = $(FILESYSTEM_ROOT)/mysql-error.log
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-	/bin/bash -c '\
-		( echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;" && \
+	/bin/bash -c " \
+		( echo 'SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;' && \
 			cat $(@:.sql-loaded=.sql) && \
-			echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | \
+			echo 'SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;' ) | \
 		tee >( $(MYSQL_CMD) ) | \
-		awk \'BEGIN{pt=systime()} (NR % $(SQL_NOTIFY_INTERVAL) == 0){nt=systime(); print "[ " nt " (interv: " (pt-nt)/60 "mins) ] Loaded " NR " sql cmds"}; pt=nt\'' && \
+		awk ' BEGIN{pt=systime();} (NR % $(SQL_NOTIFY_INTERVAL) == 0) {nt=systime(); print \"[ \" nt \" (interv: \" (nt-pt) \" secs) ]  Loaded \" NR \" sql cmds\"; pt=nt}' | \
+		tee $(MYSQL_LOADING_PROGRESS_FILE)" 2> $(MYSQL_ERROR_LOG) && \
 	touch $@
 
 ## FIXING UTF8
