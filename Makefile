@@ -110,7 +110,6 @@ $(SOURCES_DIR)/%-git : force
 		git clone $($*-git-repo) $@ ;\
 		if [ "$($*-git-commit)" != "" ]; then git checkout $($*-git-commit); fi; \
 	fi)
-	$(call remote-maybe, cd $@ && git pull)
 
 %-git-purge:
 	$(call remote-maybe, rm -rf $(SOURCES_DIR)/$*-git)
