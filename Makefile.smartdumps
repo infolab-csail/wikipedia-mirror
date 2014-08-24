@@ -122,6 +122,7 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@ # Make sure the timestamp is the download time.
 
+# Maybe put articles to remove here?
 MWDUMPER_ARGS+= --filter=notalk --filter=latest --filter=namespace:\!NS_USER
 DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  --format=xml $(MWDUMPER_ARGS)
 DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  --format=sql:1.5  $(MWDUMPER_ARGS)
@@ -136,35 +137,140 @@ $(TOOLS_DIR)/xml-parse.sh: $(DATA_DIR)/xml-parse.sh | $(TOOLS_DIR)
 # this turns out to be problem make a ring buffer of lines. to keep
 # the last lines of output.
 REV_COUNT_FEEDBACK=50
-quiet_filter=awk 'BEGIN{cnt=0; tot=0; print "Will be printing once every $(REV_COUNT_FEEDBACK) lines (controlled by REV_COUNT_FEEDBACK)"} {cnt=cnt+1} (cnt >= $(REV_COUNT_FEEDBACK)){tot=tot+cnt; print "[Total lines: " tot " ] " $$0; cnt=0}'
+quiet_filter = awk '													\
+	BEGIN{														\
+		cnt = 0;												\
+		tot = 0;												\
+		print "Will be printing once every $(REV_COUNT_FEEDBACK) lines (controlled by REV_COUNT_FEEDBACK)";	\
+	}														\
+															\
+	{														\
+		ring[tot % 20] = $$0;											\
+		cnt = cnt+1;												\
+		tot += 1;												\
+	}														\
+															\
+	(cnt >= $(REV_COUNT_FEEDBACK)){											\
+		print "[Total lines: " tot " ] " $$0;									\
+		cnt = 0;												\
+	}														\
+	END {														\
+		for (i = 0; i < 20; i++) {										\
+			print ring[(tot + i) % 20]									\
+		}													\
+	}'
+
 last_article_filter=tac | grep -m 1 -F "<title>" | sed  's/ *<title>\(.*\)<\/title>/\1/'
 
 
 # Quiet err will sample the stderr and also show the last 20 lines
-fifo1 := $(shell mktemp --dry-run)
-fifo2 := $(shell mktemp --dry-run)
-quiet-err = (ret=0; mkfifo $(fifo1) && mkfifo $(fifo2) && \
-	(cat $(fifo1) | tee $(fifo2) | $(quiet_filter) &  reader_pid1=$$! && \
-	cat $(fifo2) | tail -20 & reader_pid2=$$! && \
-	echo "Running command, readers on pids $$reader_pid1, $$reader_pid2"; \
-	( $1 ) 2>$(fifo1); export ret=$$?; \
-	wait; \
-	rm -rf $(fifo1) $(fifo2); exit $$ret))
+# fifo1 := $(shell mktemp --dry-run)
+# fifo2 := $(shell mktemp --dry-run)
+# quiet-err = (										\
+# 	ret = 0;									\
+# 	mkfifo $(fifo1) &&								\
+# 	mkfifo $(fifo2) &&								\
+# 	( 										\
+# 		( cat $(fifo1) | tee $(fifo2) | $(quiet_filter) ) &			\
+# 		reader_pid1=$$! &&							\
+# 		(cat $(fifo2) | tail -20)  &						\
+# 		reader_pid2=$$! &&							\
+# 											\
+# 		echo "Running quietly, readers on pids $$reader_pid1, $$reader_pid2";	\
+# 		([[ -z "$$reader_pid1" ]] || [[ -z "$$reader_pid2" ]]) && exit 1; 	\
+# 		( $1 ) 2> $(fifo1); 							\
+# 		export ret=$$?;								\
+# 		wait $$reader_pid1 $$reader_pid2;					\
+# 		rm -rf $(fifo1) $(fifo2); 						\
+# 		exit $$ret;								\
+# 	))
+
+swap-fds = (( $1 ) 3>&2 2>&1 1>&3)
+quiet-err = $(call swap-fds,			\
+	fifo=$$(mktemp --dry-run);	 	\
+	(					\
+		$(call swap-fds, $1 );		\
+		echo $$? > $$fifo;		\
+	) | $(quiet_filter) ;			\
+	exit $$(cat $$fifo; rm $$fifo)	 	\
+)
+
+# Dont pass quotes here, this will tee the output. Note that we can't
+# get process substitution with POSIX shell so we need bash
+mysql-load-file= bash -c "(							\
+		echo 'SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;' &&		\
+		cat $1 &&							\
+		echo 'SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;';	\
+	) | tee >( $(MYSQL_CMD) )"
+
+# Show time and line
+OUTPUT_INTERVAL = 50
+intermeted-out-filter = awk '								\
+	BEGIN {										\
+		pt = systime();								\
+	}										\
+	(NR % $(OUTPUT_INTERVAL) == 0) {						\
+		nt = systime();								\
+		print "[ " nt " (interv: " (nt-pt) " secs) ]  Loaded " NR " sql cmds";	\
+		pt = nt;								\
+	}'
+
 
 test-quiet-err:
-	@echo "If you can see this you are fine"
-	! $(call  quiet-err, awk 'BEGIN{for (i=0;i<500; i++) print i}' >&2; exit 55);
+	@echo "If you can see the message below you are fine"
+	! $(call quiet-err, false)
+	$(call quiet-err, echo "this should be seen"; seq 1 500 >&2);
 
+
+remove-xml-article = (											\
+		xml_file="$(strip $1)";									\
+		page_title="$(strip $2)";								\
+		tmp_xml=$(DRAFTS_DIR)/$$(mktemp --dry-run | xargs basename);				\
+		bash $(TOOLS_DIR)/xml-parse.sh $$xml_file "$$page_title" > $$tmp_xml;  			\
+		ret=$$?; 										\
+		if [ $$ret -ne 0 ]; then								\
+			echo "XML parse script failed. This is serous. report this at";			\
+			echo "\thttp://github.com/fakedrake/wikipedia-mirror/issues" ;			\
+			echo "I didn't clean up after myself btw (rm $$xml_file), will now exit $$ret";	\
+			exit $$ret;									\
+		fi &&											\
+		echo "Overwriting original xml $$xml_file to be ready in case there are more problematic pages" &&	\
+		mv $$tmp_xml $$xml_file)
+
+MAX_RETRIES = 3
+# A serious and error prone piece of code. This tries to create an sql
+# dump of the xml files. It will try MAX_retry times, each time
+# removing the article causing the error. This seems to eventually
+# resolve the situation missing ony a few articles, but noone knows
+# what causes the error or why this tactic works.
+#
+# Use ARTICLES_TO_REMOVE as a list of articles you know will fail to
+# remove them before hand. if you do not provide this they will be
+# detected anyway.
 $(SQL_PARTS): $$(patsubst %.sql,%.fix.xml,$$@) | $(TOOLS_DIR)/xml-parse.sh $(MWDUMPER_JAR)
 	@echo "Generating $@"
-	if ! ($(call quiet-err,$(DUMP_CMD) $< > $@ ) || (echo "FAIL" && false)); then \
-		$(call quiet-err,$(DUMP_CMD_xml) $< | $(last_article_filter) >> $(err_file)) && \
-		echo "The errored article is $$(cat $(err_file) | tail -1) ( $(err_file) ). Fixing... (time: $$(date))" &&  \
-		rm -rf $@ && \
-		$(TOOLS_DIR)/xml-parse.sh $< "$$(cat $(err_file) | tail -1)" > /tmp/$$(basename $<.mw_fix) && \
-		$(call quiet-err,$(DUMP_CMD) /tmp/$$(basename $<.mw_fix) > $@) && \
-		echo "Finished second pass over $< afer removing $$(cat $(err_file) | tail -1)"; \
-	fi
+
+	# Try dumping to sql MAX_RETRIES times each time removing
+	countdown=$(MAX_RETRIES);										  	  \
+	while [ $$countdown -gt 0 ] && (! $(call quiet-err, $(DUMP_CMD) $< > $@ ) ) ; do				  \
+		countdown=$$(($$countdown-1)) ;									  	  \
+		echo "FAIL. Will dump XML to identify the page causing this.";						  \
+		$(call quiet-err, $(DUMP_CMD_xml) $< | $(last_article_filter) >> $(err_file)) &&			  \
+		echo "The errored article is $$(cat $(err_file) | tail -1) ( $(err_file) ). Fixing... (time: $$(date))" &&\
+		rm -rf $@ &&												  \
+		$(call remove-xml-article,$<,$$(cat $(err_file) | tail -1)) || rm -rf $@ &&				  \
+		echo "Finished $${countdown}th pass over $< after removing $$(cat $(err_file) | tail -1)";		  \
+	done;														  \
+															  \
+	if [ $$countdown -le 0 ]; then											  \
+		echo "I dont know what to do. I tried this $(MAX_RETRIES) itmes, each time removing the bad article";	  \
+		echo "Try re-running the command if this is java.lang.ArrayIndexOutOfBoundsException to continue";	  \
+		echo "Otherwise please report at";									  \
+		echo "\thttp://github.com/fakedrake/wikipedia-mirror/issues" ;						  \
+		echo "The errored articles log is $(err_file).";							  \
+		echo "If it is empty or you see the same article more than once report your situation.";		  \
+		rm -rf $@ && exit 1;											  \
+	fi;														  \
 
 show-error-file:
 	@echo $(err_file)
@@ -180,19 +286,14 @@ mwdumper-command-%:
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
-SQL_NOTIFY_INTERVAL = 50
+
 MYSQL_LOADING_PROGRESS_FILE = $(FILESYSTEM_ROOT)/mysql-progress.log
 MYSQL_ERROR_LOG = $(FILESYSTEM_ROOT)/mysql-error.log
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-	/bin/bash -c " \
-		( echo 'SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;' && \
-			cat $(@:.sql-loaded=.sql) && \
-			echo 'SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;' ) | \
-		tee >( $(MYSQL_CMD) ) | \
-		awk ' BEGIN{pt=systime();} (NR % $(SQL_NOTIFY_INTERVAL) == 0) {nt=systime(); print \"[ \" nt \" (interv: \" (nt-pt) \" secs) ]  Loaded \" NR \" sql cmds\"; pt=nt}' | \
-		tee $(MYSQL_LOADING_PROGRESS_FILE)" 2> $(MYSQL_ERROR_LOG) && \
+	$(call mysql-load-file, $(@:.sql-loaded=.sql)) | $(itremeted-out-filter) | \
+		tee $(MYSQL_LOADING_PROGRESS_FILE) 2> $(MYSQL_ERROR_LOG) && \
 	touch $@
 
 ## FIXING UTF8
@@ -203,8 +304,11 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	bzcat -dv $< > $@
 
 # Note: This destroys %.raw.xml
-%.fix.xml: %.raw.xml | $(DATA_DIR)/utf-fixer
-	$(DATA_DIR)/utf-fixer  $<
+%.fix.xml: %.raw.xml # | $(DATA_DIR)/utf-fixer
+	# Turns out that this doesn't help. Ill keep it though for
+	# refrence reasons
+	#
+	#$(DATA_DIR)/utf-fixer $<
 	mv $< $@
 
 fix-%.bz2: $$(patsubst fix-%.bz2,%.fix.xml,$$@)
@@ -268,14 +372,29 @@ sql-clean: mysql-clear
 	rm -rf $(LOADED_MARKERS)
 
 
+# Dump stats
 sql_loaded_so_far=$(shell ls $(WP_PARTS_DIR)/*-loaded | wc -l)
 .PHONY:
 show-sql-loaded-files-number:
 	@echo $(sql_loaded_so_far)
 
 .PHONY:
+# Print each files
 show-sql-load-percentage: $(FIXED_XML_PARTS)
-	for i in $(FIXED_XML_PARTS); do stat -c '%X %s %n' $$i; done | sort | awk 'BEGIN{sum=0; tot=0} (NR < $(sql_loaded_so_far)+1){sum+=$$2; print "*"} { print; tot+=$$2} END{print sum "/" tot" = " sum/tot }'
+	for i in $(FIXED_XML_PARTS); do				\
+		stat -c '%X %s %n' $$i;				\
+	done | sort |						\
+		awk 'BEGIN{sum=0; tot=0}			\
+			(NR < $(sql_loaded_so_far) + 1) {	\
+				sum+=$$2; print "*";		\
+			}					\
+			{					\
+				print;				\
+				tot+=$$2;			\
+			}					\
+			END{					\
+				print sum "/" tot" = " sum/tot; \
+			}'
 
 $(TOOLS_DIR)/stats.py: $(DATA_DIR)/stats.py
 	cp $< $@
