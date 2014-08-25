@@ -205,7 +205,7 @@ mysql-load-file= bash -c "(							\
 
 # Show time and line
 OUTPUT_INTERVAL = 50
-intermeted-out-filter = awk '								\
+inter-out-filter = awk '								\
 	BEGIN {										\
 		pt = systime();								\
 	}										\
@@ -292,7 +292,7 @@ MYSQL_ERROR_LOG = $(FILESYSTEM_ROOT)/mysql-error.log
 .SECONDEXPANSION:
 $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-	$(call mysql-load-file, $(@:.sql-loaded=.sql)) | $(itremeted-out-filter) | \
+	$(call mysql-load-file, $(@:.sql-loaded=.sql)) | $(inter-out-filter) | \
 		tee $(MYSQL_LOADING_PROGRESS_FILE) 2> $(MYSQL_ERROR_LOG) && \
 	touch $@
 
