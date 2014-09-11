@@ -1,13 +1,24 @@
 """
 Just feed pairs of
 
-[<epoc date>, <value>]
+<epoc date> <float value>
 
-and I will plot them on port 8888.
+or even just
+
+<float value>
+
+One way to do that would be
+
+    $ <cmd> stdbuf -oL awk "{print \$1/$$max}" | python webmonitor.py
+
+and I will plot them on port 8888. This will also pipe the input right
+out to the output. Strange input will be ignored and piped this way,
+but this needs to be done by awk aswell in the above example.
 """
 
 import sys
 import json
+import time
 
 from threading import Thread
 from collections import deque
@@ -51,7 +62,7 @@ $(document).ready(function() {
 """
 
 config = {
-    'visible_points': '20',
+    'visible_points': 10,
     'py_chart_opts': { 'chart': { 'renderTo': 'container',
                                   'defaultSeriesType': 'spline'},
                        'title': { 'text': 'DrNinjaBatmans data'},
@@ -67,16 +78,34 @@ config = {
 
 }
 
-def send_stdin():
-    for i in sys.stdin:
-        sys.stdout.write(i)
-        buf.append(i)
+def date_float(s):
+    try:
+        date, val = s.split()
+    except ValueError:
+        val = s.strip()
+        date = time.time()
 
-        for w in websockets:
-            try:
-                w.write_message(i)
-            except websocket.WebSocketClosedError:
-                pass
+    return int(date), float(val)
+
+
+def send_stdin(fn=date_float):
+    for raw in sys.stdin:
+        sys.stdout.write(raw)
+
+        # Ignore strange input.
+        try:
+            jsn = json.dumps(fn(raw))
+
+            buf.append(jsn)
+
+            for w in websockets:
+                try:
+                    w.write_message(jsn)
+                except websocket.WebSocketClosedError:
+                    pass
+
+        except:
+            pass
 
     for ws in websockets:
         ws.close()
@@ -97,13 +126,12 @@ class MainHandler(tornado.web.RequestHandler):
         self.write(HTML % (int(config['visible_points']),
                            json.dumps(config['py_chart_opts'])))
 
-application = tornado.web.Application([
-    (r"/", MainHandler),
-    (r'/websocket', StdinSocket),
-])
 
 if __name__ == "__main__":
-
+    application = tornado.web.Application([
+        (r"/", MainHandler),
+        (r'/websocket', StdinSocket),
+    ])
     buf = deque(maxlen=int(config['visible_points']))
     websockets = []
 
