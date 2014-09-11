@@ -76,7 +76,7 @@ void* fix_range(void* _r)
 	    PRINT("Invalid char 0x%x (next: 0x%x)\n",
 		  *(char*)r->start, *(char*)(r->start+1));
 	    *((char*)r->start) = DEFAULT_CHAR;
-	    (r->start )++;
+	    (r->start)++;
 	} else {
 	    r->start = tmp;
 	}
