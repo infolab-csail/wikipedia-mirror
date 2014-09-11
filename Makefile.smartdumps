@@ -121,8 +121,9 @@ $(BZ_PARTS): | $(WP_PARTS_DIR)
 	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
 	touch $@ # Make sure the timestamp is the download time.
 
-DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS) --format=xml
-DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  $(MWDUMPER_ARGS)  --format=sql:1.5
+MWDUMPER_ARGS+= --filter=notalk --filter=latest --filter=namespace:\!NS_USER
+DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  --format=xml $(MWDUMPER_ARGS)
+DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  --format=sql:1.5  $(MWDUMPER_ARGS)
 DUMP_CMD = $(DUMP_CMD_sql)
 
 err_file=$(DRAFTS_DIR)/errored_articles
@@ -187,7 +188,7 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 			cat $(@:.sql-loaded=.sql) && \
 			echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | \
 		tee >( $(MYSQL_CMD) ) | \
-		awk \'(NR % $(SQL_NOTIFY_INTERVAL) == 0){print "[" systime() "] Loaded " NR " sql cmds"}\'' && \
+		awk "(NR % $(SQL_NOTIFY_INTERVAL)  == 0) { print \"[ \" systime() \" ] \"NR \" cmds\"}"' && \
 	touch $@
 
 
