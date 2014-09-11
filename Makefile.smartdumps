@@ -31,47 +31,53 @@
 # enwiki-20131202-pages-articles20.xml-p011125004p013324998.bz2
 #WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20131202
 
+WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20140614
+WP_ALL_PAGES = enwiki-20140614-pages-meta-current1.xml-p000000010p000010000.bz2 \
+enwiki-20140614-pages-meta-current2.xml-p000010001p000025000.bz2 \
+enwiki-20140614-pages-meta-current3.xml-p000025001p000055000.bz2 \
+enwiki-20140614-pages-meta-current4.xml-p000055002p000104998.bz2 \
+enwiki-20140614-pages-meta-current5.xml-p000105001p000184999.bz2 \
+enwiki-20140614-pages-meta-current6.xml-p000185003p000305000.bz2 \
+enwiki-20140614-pages-meta-current7.xml-p000305002p000464997.bz2 \
+enwiki-20140614-pages-meta-current8.xml-p000465001p000665000.bz2 \
+enwiki-20140614-pages-meta-current9.xml-p000665001p000925000.bz2 \
+enwiki-20140614-pages-meta-current10.xml-p000925001p001325000.bz2 \
+enwiki-20140614-pages-meta-current11.xml-p001325001p001825000.bz2 \
+enwiki-20140614-pages-meta-current12.xml-p001825001p002425000.bz2 \
+enwiki-20140614-pages-meta-current13.xml-p002425001p003124998.bz2 \
+enwiki-20140614-pages-meta-current14.xml-p003125001p003924999.bz2 \
+enwiki-20140614-pages-meta-current15.xml-p003925001p004825000.bz2 \
+enwiki-20140614-pages-meta-current16.xml-p004825002p006025000.bz2 \
+enwiki-20140614-pages-meta-current17.xml-p006025001p007524997.bz2 \
+enwiki-20140614-pages-meta-current18.xml-p007525002p009225000.bz2 \
+enwiki-20140614-pages-meta-current19.xml-p009225001p011125000.bz2 \
+enwiki-20140614-pages-meta-current20.xml-p011125001p013324998.bz2 \
+enwiki-20140614-pages-meta-current21.xml-p013325001p015725000.bz2 \
+enwiki-20140614-pages-meta-current22.xml-p015725003p018225000.bz2 \
+enwiki-20140614-pages-meta-current23.xml-p018225001p020925000.bz2 \
+enwiki-20140614-pages-meta-current24.xml-p020925002p023725000.bz2 \
+enwiki-20140614-pages-meta-current25.xml-p023725001p026624999.bz2 \
+enwiki-20140614-pages-meta-current26.xml-p026625002p029625000.bz2 \
+enwiki-20140614-pages-meta-current27.xml-p029625001p043052726.bz2
 
-#WP_BASE_URL = http://dumps.wikimedia.org/enwiki/20140614
-# WP_ALL_PAGES = enwiki-20140614-pages-meta-current1.xml-p000000010p000010000.bz2 \
-# enwiki-20140614-pages-meta-current2.xml-p000010001p000025000.bz2 \
-# enwiki-20140614-pages-meta-current3.xml-p000025001p000055000.bz2 \
-# enwiki-20140614-pages-meta-current4.xml-p000055002p000104998.bz2 \
-# enwiki-20140614-pages-meta-current5.xml-p000105001p000184999.bz2 \
-# enwiki-20140614-pages-meta-current6.xml-p000185003p000305000.bz2 \
-# enwiki-20140614-pages-meta-current7.xml-p000305002p000464997.bz2 \
-# enwiki-20140614-pages-meta-current8.xml-p000465001p000665000.bz2 \
-# enwiki-20140614-pages-meta-current9.xml-p000665001p000925000.bz2 \
-# enwiki-20140614-pages-meta-current10.xml-p000925001p001325000.bz2 \
-# enwiki-20140614-pages-meta-current11.xml-p001325001p001825000.bz2 \
-# enwiki-20140614-pages-meta-current12.xml-p001825001p002425000.bz2 \
-# enwiki-20140614-pages-meta-current13.xml-p002425001p003124998.bz2 \
-# enwiki-20140614-pages-meta-current14.xml-p003125001p003924999.bz2 \
-# enwiki-20140614-pages-meta-current15.xml-p003925001p004825000.bz2 \
-# enwiki-20140614-pages-meta-current16.xml-p004825002p006025000.bz2 \
-# enwiki-20140614-pages-meta-current17.xml-p006025001p007524997.bz2 \
-# enwiki-20140614-pages-meta-current18.xml-p007525002p009225000.bz2 \
-# enwiki-20140614-pages-meta-current19.xml-p009225001p011125000.bz2 \
-# enwiki-20140614-pages-meta-current20.xml-p011125001p013324998.bz2 \
-# enwiki-20140614-pages-meta-current21.xml-p013325001p015725000.bz2 \
-# enwiki-20140614-pages-meta-current22.xml-p015725003p018225000.bz2 \
-# enwiki-20140614-pages-meta-current23.xml-p018225001p020925000.bz2 \
-# enwiki-20140614-pages-meta-current24.xml-p020925002p023725000.bz2 \
-# enwiki-20140614-pages-meta-current25.xml-p023725001p026624999.bz2 \
-# enwiki-20140614-pages-meta-current26.xml-p026625002p029625000.bz2 \
-# enwiki-20140614-pages-meta-current27.xml-p029625001p043052726.bz2
-
-
-WP_BASE_URL = http://wikimedia.wansec.com/archive/enwiki/20080103/
-WP_ALL_PAGES = enwiki-20080103-pages-articles.xml.bz2
+# WP_BASE_URL = http://wikimedia.wansec.com/archive/enwiki/20080103/
+# WP_ALL_PAGES = enwiki-20080103-pages-articles.xml.bz2
 
 WP_PARTS_DIR = $(DRAFTS_DIR)/wikipedia-parts
 
+WP_EXTRAS = enwiki-20140614-categorylinks.sql.gz \
+enwiki-20140614-redirect.sql.gz \
+enwiki-20140614-pagelinks.sql.gz
+
+GZ_SQL_DUMP_EXTRAS = $(WP_EXTRAS:%.gz=$(WP_PARTS_DIR)/%.gz)
+SQL_DUMP_EXTRAS = $(GZ_SQL_DUMP_EXTRAS:%.gz=%)
+LOADED_MARKER_EXTRAS = $(SQL_DUMP_EXTRAS:%.sql=%.sql-loaded)
+
 BZ_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.bz2)
-SQL_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
+SQL_PARTS =  $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql)
 XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.raw.xml)
 FIXED_XML_PARTS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.fix.xml)
-LOADED_MARKERS = $(WP_ALL_PAGES:%.bz2=$(WP_PARTS_DIR)/%.sql-loaded)
+LOADED_MARKERS = $(SQL_PARTS:%.sql=%.sql-loaded) $(LOADED_MARKER_EXTRAS)
 
 file-exists = $(shell ls $(1))
 or-file = $(if $(call file-exists,$(1)), $(1), $(2))
@@ -79,6 +85,14 @@ or-file = $(if $(call file-exists,$(1)), $(1), $(2))
 cond-subst = $(call or-file, $(patsubst $(1), $(2), $(4)), \
 $(patsubst $(1), $(3), $(4)))
 
+
+.SECONDEXPANSION:
+$(SQL_DUMP_EXTRAS): $$(patsubst %,%.gz,$$@)
+	gunzip $<
+
+# This is a 0byte dummy to help with the time estimation.
+$(WP_PARTS_DIR)/dummy.sql:
+	touch $@
 
 PHONY:
 fixed-xml-dumps: $(FIXED_XML_PARTS)
@@ -116,11 +130,12 @@ $(WP_PARTS_DIR):
 
 # For each dump make targets for their corresponding files in0
 # WP_PARTS_DIR
-$(BZ_PARTS): | $(WP_PARTS_DIR)
+$(BZ_PARTS) $(GZ_SQL_DUMP_EXTRAS): | $(WP_PARTS_DIR)
 	echo "Dowloading: $@..."
-	wget -nv $(subst $(WP_PARTS_DIR), $(WP_BASE_URL), $@) -O $@
+	wget -nv $(patsubst $(WP_PARTS_DIR)/%, $(WP_BASE_URL)/%, $@) -O $@
 	touch $@ # Make sure the timestamp is the download time.
 
+# Maybe put articles to remove here?
 MWDUMPER_ARGS+= --filter=notalk --filter=latest --filter=namespace:\!NS_USER
 DUMP_CMD_xml = java -jar $(MWDUMPER_JAR)  --format=xml $(MWDUMPER_ARGS)
 DUMP_CMD_sql = java -jar $(MWDUMPER_JAR)  --format=sql:1.5  $(MWDUMPER_ARGS)
@@ -135,35 +150,141 @@ $(TOOLS_DIR)/xml-parse.sh: $(DATA_DIR)/xml-parse.sh | $(TOOLS_DIR)
 # this turns out to be problem make a ring buffer of lines. to keep
 # the last lines of output.
 REV_COUNT_FEEDBACK=50
-quiet_filter=awk 'BEGIN{cnt=0; tot=0; print "Will be printing once every $(REV_COUNT_FEEDBACK) lines (controlled by REV_COUNT_FEEDBACK)"} {cnt=cnt+1} (cnt >= $(REV_COUNT_FEEDBACK)){tot=tot+cnt; print "[Total lines: " tot " ] " $$0; cnt=0}'
+quiet_filter = awk '													\
+	BEGIN{														\
+		cnt = 0;												\
+		tot = 0;												\
+		print "Will be printing once every $(REV_COUNT_FEEDBACK) lines (controlled by REV_COUNT_FEEDBACK)";	\
+	}														\
+															\
+	{														\
+		ring[tot % 20] = $$0;											\
+		cnt = cnt+1;												\
+		tot += 1;												\
+	}														\
+															\
+	(cnt >= $(REV_COUNT_FEEDBACK)){											\
+		print "[Total lines: " tot " ] " $$0;									\
+		cnt = 0;												\
+	}														\
+	END {														\
+		for (i = 0; i < 20; i++) {										\
+			print ring[(tot + i) % 20]									\
+		}													\
+	}'
+
 last_article_filter=tac | grep -m 1 -F "<title>" | sed  's/ *<title>\(.*\)<\/title>/\1/'
 
 
 # Quiet err will sample the stderr and also show the last 20 lines
-fifo1 := $(shell mktemp --dry-run)
-fifo2 := $(shell mktemp --dry-run)
-quiet-err = (ret=0; mkfifo $(fifo1) && mkfifo $(fifo2) && \
-	(cat $(fifo1) | tee $(fifo2) | $(quiet_filter) &  reader_pid1=$$! && \
-	cat $(fifo2) | tail -20 & reader_pid2=$$! && \
-	echo "Running command, readers on pids $$reader_pid1, $$reader_pid2"; \
-	( $1 ) 2>$(fifo1); export ret=$$?; \
-	wait; \
-	rm -rf $(fifo1) $(fifo2); exit $$ret))
+# fifo1 := $(shell mktemp --dry-run)
+# fifo2 := $(shell mktemp --dry-run)
+# quiet-err = (										\
+# 	ret = 0;									\
+# 	mkfifo $(fifo1) &&								\
+# 	mkfifo $(fifo2) &&								\
+# 	( 										\
+# 		( cat $(fifo1) | tee $(fifo2) | $(quiet_filter) ) &			\
+# 		reader_pid1=$$! &&							\
+# 		(cat $(fifo2) | tail -20)  &						\
+# 		reader_pid2=$$! &&							\
+# 											\
+# 		echo "Running quietly, readers on pids $$reader_pid1, $$reader_pid2";	\
+# 		([[ -z "$$reader_pid1" ]] || [[ -z "$$reader_pid2" ]]) && exit 1; 	\
+# 		( $1 ) 2> $(fifo1); 							\
+# 		export ret=$$?;								\
+# 		wait $$reader_pid1 $$reader_pid2;					\
+# 		rm -rf $(fifo1) $(fifo2); 						\
+# 		exit $$ret;								\
+# 	))
+
+swap-fds = (( $1 ) 3>&2 2>&1 1>&3)
+quiet-err = $(call swap-fds,			\
+	fifo=$$(mktemp --dry-run);	 	\
+	(					\
+		$(call swap-fds, $1 );		\
+		echo $$? > $$fifo;		\
+	) | $(quiet_filter) ;			\
+	exit $$(cat $$fifo; rm $$fifo)	 	\
+)
+
+# Dont pass quotes here, this will tee the output. Note that we can't
+# get process substitution with POSIX shell so we need bash
+mysql-load-file= bash -c "(							\
+		echo 'SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;' &&		\
+		cat $1 &&							\
+		echo 'SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;';	\
+	) | stdbuf -oL tee >( $(MYSQL_CMD) )"
+
+# Show time and line
+OUTPUT_INTERVAL = 50
+inter-out-filter = stdbuf -oL awk '							\
+
+	BEGIN {										\
+		pt = systime();								\
+	}										\
+	(NR % $(OUTPUT_INTERVAL) == 0) {						\
+		nt = systime();								\
+		print "[ " nt " (interv: " (nt-pt) " secs) ]  Loaded " NR " sql cmds";	\
+		pt = nt;								\
+	}'
+
 
 test-quiet-err:
-	@echo "If you can see this you are fine"
-	! $(call  quiet-err, awk 'BEGIN{for (i=0;i<500; i++) print i}' >&2; exit 55);
+	@echo "If you can see the message below you are fine"
+	! $(call quiet-err, false)
+	$(call quiet-err, echo "this should be seen"; seq 1 500 >&2);
 
+
+remove-xml-article = (											\
+		xml_file="$(strip $1)";									\
+		page_title="$(strip $2)";								\
+		tmp_xml=$(DRAFTS_DIR)/$$(mktemp --dry-run | xargs basename);				\
+		bash $(TOOLS_DIR)/xml-parse.sh $$xml_file "$$page_title" > $$tmp_xml;  			\
+		ret=$$?; 										\
+		if [ $$ret -ne 0 ]; then								\
+			echo "XML parse script failed. This is serous. report this at";			\
+			echo "\thttp://github.com/fakedrake/wikipedia-mirror/issues" ;			\
+			echo "I didn't clean up after myself btw (rm $$xml_file), will now exit $$ret";	\
+			exit $$ret;									\
+		fi &&											\
+		echo "Overwriting original xml $$xml_file to be ready in case there are more problematic pages" &&	\
+		mv $$tmp_xml $$xml_file)
+
+MAX_RETRIES = 3
+# A serious and error prone piece of code. This tries to create an sql
+# dump of the xml files. It will try MAX_retry times, each time
+# removing the article causing the error. This seems to eventually
+# resolve the situation missing ony a few articles, but noone knows
+# what causes the error or why this tactic works.
+#
+# Use ARTICLES_TO_REMOVE as a list of articles you know will fail to
+# remove them before hand. if you do not provide this they will be
+# detected anyway.
 $(SQL_PARTS): $$(patsubst %.sql,%.fix.xml,$$@) | $(TOOLS_DIR)/xml-parse.sh $(MWDUMPER_JAR)
 	@echo "Generating $@"
-	if ! ($(call quiet-err,$(DUMP_CMD) $< > $@ ) || (echo "FAIL" && false)); then \
-		$(call quiet-err,$(DUMP_CMD_xml) $< | $(last_article_filter) >> $(err_file)) && \
-		echo "The errored article is $$(cat $(err_file) | tail -1) ( $(err_file) ). Fixing... (time: $$(date))" &&  \
-		rm -rf $@ && \
-		$(TOOLS_DIR)/xml-parse.sh $< "$$(cat $(err_file) | tail -1)" > /tmp/$$(basename $<.mw_fix) && \
-		$(call quiet-err,$(DUMP_CMD) /tmp/$$(basename $<.mw_fix) > $@) && \
-		echo "Finished second pass over $< afer removing $$(cat $(err_file) | tail -1)"; \
-	fi
+
+	# Try dumping to sql MAX_RETRIES times each time removing
+	countdown=$(MAX_RETRIES);										  	  \
+	while [ $$countdown -gt 0 ] && (! $(call quiet-err, $(DUMP_CMD) $< > $@ ) ) ; do				  \
+		countdown=$$(($$countdown-1)) ;									  	  \
+		echo "FAIL. Will dump XML to identify the page causing this.";						  \
+		$(call quiet-err, $(DUMP_CMD_xml) $< | $(last_article_filter) >> $(err_file)) &&			  \
+		echo "The errored article is $$(cat $(err_file) | tail -1) ( $(err_file) ). Fixing... (time: $$(date))" &&\
+		rm -rf $@ &&												  \
+		$(call remove-xml-article,$<,$$(cat $(err_file) | tail -1)) || rm -rf $@ &&				  \
+		echo "Finished $${countdown}th pass over $< after removing $$(cat $(err_file) | tail -1)";		  \
+	done;														  \
+															  \
+	if [ $$countdown -le 0 ]; then											  \
+		echo "I dont know what to do. I tried this $(MAX_RETRIES) itmes, each time removing the bad article";	  \
+		echo "Try re-running the command if this is java.lang.ArrayIndexOutOfBoundsException to continue";	  \
+		echo "Otherwise please report at";									  \
+		echo "\thttp://github.com/fakedrake/wikipedia-mirror/issues" ;						  \
+		echo "The errored articles log is $(err_file).";							  \
+		echo "If it is empty or you see the same article more than once report your situation.";		  \
+		rm -rf $@ && exit 1;											  \
+	fi;														  \
 
 show-error-file:
 	@echo $(err_file)
@@ -179,17 +300,16 @@ mwdumper-command-%:
 
 # Each *.sql-loaded file that exists means that the corresponding .sql
 # file was loaded already in the db.
-SQL_NOTIFY_INTERVAL=500
+
+MYSQL_LOADING_PROGRESS_FILE = $(FILESYSTEM_ROOT)/mysql-progress.log
+MYSQL_ERROR_LOG = $(FILESYSTEM_ROOT)/mysql-error.log
 .SECONDEXPANSION:
-$(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
+$(LOADED_MARKER_EXTRAS) $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	@echo "loading: $(@:.sql-loaded=.sql)..."
-	/bin/bash -c '\
-		( echo "SET AUTOCOMMIT = 0; SET FOREIGN_KEY_CHECKS=0;" && \
-			cat $(@:.sql-loaded=.sql) && \
-			echo "SET FOREIGN_KEY_CHECKS=1;COMMIT;SET AUTOCOMMIT=1;") | \
-		tee >( $(MYSQL_CMD) ) | \
-		awk "(NR % $(SQL_NOTIFY_INTERVAL)  == 0) { print \"[ \" systime() \" ] \"NR \" cmds\"}"' && \
+	$(call mysql-load-file, $(@:.sql-loaded=.sql)) | $(inter-out-filter) | \
+		stdbuf -o 'L' tee $(MYSQL_LOADING_PROGRESS_FILE) 2> $(MYSQL_ERROR_LOG) && \
 	touch $@
+
 
 
 ## FIXING UTF8
@@ -200,15 +320,18 @@ $(LOADED_MARKERS): $$(patsubst %.sql-loaded,%.sql,$$@) | bmw-run $(MYSQL)
 	bzcat -dv $< > $@
 
 # Note: This destroys %.raw.xml
-%.fix.xml: %.raw.xml | $(DATA_DIR)/utf-fixer
-	$(DATA_DIR)/utf-fixer  $<
+%.fix.xml: %.raw.xml # | $(DATA_DIR)/utf-fixer
+	# Turns out that this doesn't help. Ill keep it though for
+	# refrence reasons
+	#
+	#$(DATA_DIR)/utf-fixer $<
 	mv $< $@
 
 fix-%.bz2: $$(patsubst fix-%.bz2,%.fix.xml,$$@)
 
 # Load all sql files.
 .PHONY:
-sql-load-parts: $(LOADED_MARKERS)
+sql-load-parts: $(WP_PARTS_DIR)/dummy.sql $(LOADED_MARKERS)
 
 .PHONY:
 clean-sql-parts:
@@ -217,6 +340,32 @@ clean-sql-parts:
 # Create all sql dumps.
 .PHONY:
 sql-dump-parts: $(SQL_PARTS)
+
+$(TOOLS_DIR)/stats.py: $(DATA_DIR)/stats.py
+	cp $< $@
+
+LOAD_DUMP_TIMES_CMD=(for i in $(LOADED_MARKERS); do \
+	[ -f $$i ] && echo $$(stat -c '%X' $$i 2> /dev/null) $$(stat -c '%s' $${i%-loaded}); done | \
+	sort | awk '(NR==1){stime=$$1; totsize=0} {totsize+=$$2} {print totsize " " $$1-stime}' )
+
+TOTAL_SQL_SIZE=$(shell sum=0; for i in $(SQL_PARTS); do sum=$$(($$sum+$$(stat -c '%s' $${i%-loaded}))); done; echo $$sum)
+SQL_PARTS_COUNT=$(shell for i in $(SQL_PARTS); do echo $$i; done | wc -l)
+
+export MPLCONFIGDIR=$(DRAFTS_DIR)
+.PHONY:
+show-estimated-time: $(TOOLS_DIR)/stats.py
+	$(LOAD_DUMP_TIMES_CMD) | python $< estimate $(TOTAL_SQL_SIZE)
+
+
+.PHONY:
+test-stats: $(TOOLS_DIR)/stats.py
+	echo "1 2" | python $< estimate
+	echo -n "0\n1\n2\n" | python $< estimate 10
+	echo -n "1 1\n2 2\n3 3\n" | python $< estimate 10
+
+.PHONY:
+test-dump-times:
+	$(LOAD_DUMP_TIMES_CMD)
 
 count-pages-in-files=(for i in $1; do grep -F "<page>" $$i; done | wc -l)
 .PHONY:
@@ -236,12 +385,16 @@ show-innodb-stats:
 sql-clean: mysql-clear
 	rm -rf $(LOADED_MARKERS)
 
+$(TOOLS_DIR)/sql-pinger.sh: $(DATA_DIR)/sql-pinger.sh
+	cp $< $@
+	chmod a+x $@
 
-sql_loaded_so_far=$(shell ls $(WP_PARTS_DIR)/*-loaded | wc -l)
-.PHONY:
-show-sql-loaded-files-number:
-	@echo $(sql_loaded_so_far)
+$(TOOLS_DIR)/completion.py: $(DATA_DIR)/completion.py
+	cp $< $@
 
-.PHONY:
-show-sql-load-percentage: $(FIXED_XML_PARTS)
-	for i in $(FIXED_XML_PARTS); do stat -c '%X %s %n' $$i; done | sort | awk 'BEGIN{sum=0; tot=0} (NR < $(sql_loaded_so_far)+1){sum+=$$2; print "*"} { print; tot+=$$2} END{print sum "/" tot" = " sum/tot }'
+
+parts-completion: $(TOOLS_DIR)/sql-pinger.sh $(TOOLS_DIR)/completion.py | $(SQL_PARTS)
+	python $(TOOLS_DIR)/completion.py '$(SQL_PARTS)'  $< '$(MYSQL_CMD)'
+
+extras-completion: $(TOOLS_DIR)/sql-pinger.sh $(TOOLS_DIR)/completion.py | $(SQL_DUMP_EXTRAS)
+	python $(TOOLS_DIR)/completion.py '$(SQL_DUMP_EXTRAS)'  $< '$(MYSQL_CMD)'

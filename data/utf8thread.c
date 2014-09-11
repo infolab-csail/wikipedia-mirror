@@ -24,7 +24,7 @@ sem_t stdio_mutex;
 
 #define DEFAULT_CHAR ' '
 #define WORKERS 8
-#define MESSAGE_DENSITY 1000000
+#define MESSAGE_DENSITY 1000000000
 
 typedef unsigned long long u64;
 
@@ -46,10 +46,12 @@ struct crange {
 inline u64 valid_utf8(u64 c)
 {
     char i;
+    /* Ascii */
     if ((*(char*)c & 0x80) == 0)
 	return c+1;
 
-    for (i=UTF_LEN(*(char*)c)-1; i>0; i--) {
+    /*  */
+    for (i = UTF_LEN(*(char*)c)-1; i>0; i--) {
 	c++;
 	if (!UTF_CHECK(1, *(char*)c)) {
 	    return (u64)NULL;
@@ -68,18 +70,19 @@ void* fix_range(void* _r)
 
     while ((u64)r->start < (u64)r->end) {
 	if (count++ % MESSAGE_DENSITY == 0)
-	    printf ("[worker: 0x%016llx] Done with %lluK.\n", id, count%1024);
+	    printf ("[worker: 0x%016llx] Done with %lluK.\n", id, count % 1024);
 
 	if (!(tmp = valid_utf8(r->start))){
 	    PRINT("Invalid char 0x%x (next: 0x%x)\n",
 		  *(char*)r->start, *(char*)(r->start+1));
 	    *((char*)r->start) = DEFAULT_CHAR;
-	    r->start++;
+	    (r->start)++;
 	} else {
 	    r->start = tmp;
 	}
     }
 
+    PRINT ("[worker: 0x%016llx] OUT\n", id);
     return NULL;
 }
 
@@ -105,9 +108,14 @@ void run(u64 p, u64 sz)
 	}
 	PRINT("OK\n");
     }
+
+    PRINT ("Wrapping up...\n");
     for (i=0; i<WORKERS; i++) {
+	PRINT ("Joining worker %d...", i);
 	pthread_join(workers[i], NULL);
-	PRINT("Worker %d went through %llu bytes.\n", i, (u64)rngs[i].end - (u64)rngs[i].start);
+	PRINT ("OK\n");
+	PRINT("Worker %d went through %llu bytes.\n",
+	      i, (u64)rngs[i].end - (u64)rngs[i].start);
     }
 }
 

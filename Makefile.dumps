@@ -21,7 +21,7 @@ $(MWDUMPER_JAR): mwdumper | $(TOOLS_DIR)
 
 compile-utf-fix: $(DATA_DIR)/utf-fixer
 $(DATA_DIR)/utf-fixer: $(DATA_DIR)/utf8thread.c
-	gcc $^ -O3 -g -D_FILE_OFFSET_BITS=64 -Wall -pthread -o $@
+	gcc $^ -O2 -g -D_FILE_OFFSET_BITS=64 -Wall -pthread -o $@
 
 include Makefile.smartdumps
 
