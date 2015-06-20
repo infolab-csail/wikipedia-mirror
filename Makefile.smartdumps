@@ -219,7 +219,6 @@ mysql-load-file= bash -c "(							\
 # Show time and line
 OUTPUT_INTERVAL = 50
 inter-out-filter = stdbuf -oL awk '							\
-
 	BEGIN {										\
 		pt = systime();								\
 	}										\
